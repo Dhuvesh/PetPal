@@ -16,6 +16,7 @@ import PetAdoptionStore from "./pages/Adoption/PetStore";
 import PetDetailsPage from "./pages/Adoption/PetDetails";
 import PetRehomingForm from "./pages/Rehome/RehomePet";
 import VetServicesPage from "./pages/VetServices/VetServices";
+import PetpalAdminDashboard from "./pages/AdminPanel/PetpalAdminDashboard";
 
 export default function App() {
   const {authUser, checkAuth, isCheckingAuth} = useAuthStore();
@@ -48,6 +49,8 @@ export default function App() {
         <Route path="/adopt/:id" element = {<PetDetailsPage />} />
         <Route path="/rehome" element = {<PetRehomingForm />} />
         <Route path="/vet-services" element={<VetServicesPage />} />
+        <Route path="/ngo-panel" element={<PetpalAdminDashboard />} />
+        
       </Routes>
       <Toaster />
     </div>
