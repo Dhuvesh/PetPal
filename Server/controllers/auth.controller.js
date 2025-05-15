@@ -4,7 +4,7 @@ import User from "../models/user.model.js";
 import bcryptjs from "bcryptjs";
 
 export const signup = async (req, res) => {
-    const { fullName, email, password } = req.body;
+    const { fullName, email, password } = req.body  ;
     try { 
         if(!fullName || !email || !password){
             return res.status(400).json({

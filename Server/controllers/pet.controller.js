@@ -48,7 +48,6 @@ const PostPet = async (req, res) => {
       }
     }
 
-    // Create new pet document
     const newPet = new Pet({
       name,
       age,
@@ -62,7 +61,6 @@ const PostPet = async (req, res) => {
       photos: photoUrls,
     })
 
-    // Save pet to database
     await newPet.save()
 
     res.status(201).json({ message: "Pet rehoming request submitted successfully", pet: newPet })

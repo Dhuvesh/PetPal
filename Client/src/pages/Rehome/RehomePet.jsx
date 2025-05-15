@@ -1,10 +1,13 @@
 import { useState } from "react"
-import { X, PlusCircle, Upload, PawPrint } from "lucide-react"
-import { axiosInstance } from "../../lib/axios"
-import { Toaster, toast } from "react-hot-toast"
+import { X, PlusCircle, Upload, PawPrint, ChevronRight, ChevronLeft, Camera, UserCircle, FileCheck } from "lucide-react"
 
-const PetRehomingForm = () => {
-  const [formData, setFormData] = useState({
+const EnhancedPetRehomingForm = () => {
+  const [step, setStep] = useState(1)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitMessage, setSubmitMessage] = useState("")
+  
+  // Pet details
+  const [petFormData, setPetFormData] = useState({
     name: "",
     age: "",
     location: "",
@@ -16,23 +19,43 @@ const PetRehomingForm = () => {
     characteristics: [],
     photos: [],
   })
-
+  
+  // Owner details
+  const [ownerFormData, setOwnerFormData] = useState({
+    fullName: "",
+    email: "",
+    phone: "",
+    reason: "",
+    acceptTerms: false
+  })
+  
   const [currentTrait, setCurrentTrait] = useState("")
   const [currentCharacteristic, setCurrentCharacteristic] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [submitMessage, setSubmitMessage] = useState("")
 
-  const handleChange = (e) => {
+  const handlePetChange = (e) => {
     const { name, value } = e.target
-    setFormData((prevState) => ({
+    setPetFormData((prevState) => ({
       ...prevState,
       [name]: value,
+    }))
+  }
+  
+  const handleOwnerChange = (e) => {
+    const { name, value, type, checked } = e.target
+    setOwnerFormData((prevState) => ({
+      ...prevState,
+      [name]: type === "checkbox" ? checked : value,
     }))
   }
 
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files)
-    setFormData((prevState) => ({
+    if (petFormData.photos.length + files.length > 5) {
+      alert("You can only upload up to 5 photos")
+      return
+    }
+    
+    setPetFormData((prevState) => ({
       ...prevState,
       photos: [...prevState.photos, ...files],
     }))
@@ -42,49 +65,81 @@ const PetRehomingForm = () => {
     const currentValue = type === "traits" ? currentTrait : currentCharacteristic
     const currentSetter = type === "traits" ? setCurrentTrait : setCurrentCharacteristic
 
-    if (currentValue && !formData[type].includes(currentValue)) {
-      if (formData[type].length >= 5) {
-        toast.error(`You can only add up to 5 ${type}`)
+    if (currentValue && !petFormData[type].includes(currentValue)) {
+      if (petFormData[type].length >= 5) {
+        alert(`You can only add up to 5 ${type}`)
         return
       }
-      setFormData((prevState) => ({
+      setPetFormData((prevState) => ({
         ...prevState,
         [type]: [...prevState[type], currentValue],
       }))
       currentSetter("")
-      toast.success(`${type.slice(0, -1)} added successfully`)
-    } else if (formData[type].includes(currentValue)) {
-      toast.error(`This ${type.slice(0, -1)} has already been added`)
+    } else if (petFormData[type].includes(currentValue)) {
+      alert(`This ${type.slice(0, -1)} has already been added`)
     } else {
-      toast.error(`Please enter a valid ${type.slice(0, -1)}`)
+      alert(`Please enter a valid ${type.slice(0, -1)}`)
     }
   }
 
   const removeItem = (type, itemToRemove) => {
-    setFormData((prevState) => ({
+    setPetFormData((prevState) => ({
       ...prevState,
       [type]: prevState[type].filter((item) => item !== itemToRemove),
     }))
   }
+  
+  const validatePetDetails = () => {
+    const errors = []
+    if (!petFormData.name.trim()) errors.push("Pet name is required")
+    if (!petFormData.age.trim()) errors.push("Pet age is required")
+    if (!petFormData.location.trim()) errors.push("Location is required")
+    if (!petFormData.weight.trim()) errors.push("Weight is required")
+    if (!petFormData.breed.trim()) errors.push("Breed is required")
+    if (!petFormData.gender) errors.push("Gender is required")
+    if (!petFormData.description.trim()) errors.push("Description is required")
+    if (petFormData.traits.length === 0) errors.push("At least one trait is required")
+    if (petFormData.characteristics.length === 0) errors.push("At least one characteristic is required")
+    if (petFormData.photos.length === 0) errors.push("At least one photo is required")
+    
+    return errors
+  }
+  
+  const validateOwnerDetails = () => {
+    const errors = []
+    if (!ownerFormData.fullName.trim()) errors.push("Full name is required")
+    if (!ownerFormData.email.trim()) errors.push("Email is required")
+    if (!ownerFormData.phone.trim()) errors.push("Phone number is required")
+    if (!ownerFormData.reason.trim()) errors.push("Reason for rehoming is required")
+    if (!ownerFormData.acceptTerms) errors.push("You must accept the terms and conditions")
+    
+    return errors
+  }
+
+  const nextStep = () => {
+    if (step === 1) {
+      const errors = validatePetDetails()
+      if (errors.length > 0) {
+        alert(errors.join("\n"))
+        return
+      }
+    }
+    
+    setStep(step + 1)
+  }
+
+  const prevStep = () => {
+    setStep(step - 1)
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-
-    // Validate all fields
-    const errors = []
-    if (!formData.name.trim()) errors.push("Pet name is required")
-    if (!formData.age.trim()) errors.push("Pet age is required")
-    if (!formData.location.trim()) errors.push("Location is required")
-    if (!formData.weight.trim()) errors.push("Weight is required")
-    if (!formData.breed.trim()) errors.push("Breed is required")
-    if (!formData.gender) errors.push("Gender is required")
-    if (!formData.description.trim()) errors.push("Description is required")
-    if (formData.traits.length === 0) errors.push("At least one trait is required")
-    if (formData.characteristics.length === 0) errors.push("At least one characteristic is required")
-    if (formData.photos.length === 0) errors.push("At least one photo is required")
-
-    if (errors.length > 0) {
-      errors.forEach((error) => toast.error(error))
+    
+    const petErrors = validatePetDetails()
+    const ownerErrors = validateOwnerDetails()
+    
+    if (petErrors.length > 0 || ownerErrors.length > 0) {
+      alert([...petErrors, ...ownerErrors].join("\n"))
       return
     }
 
@@ -92,65 +147,429 @@ const PetRehomingForm = () => {
     setSubmitMessage("")
 
     try {
-      const formDataToSend = new FormData()
-
-      // Append all text fields
-      Object.keys(formData).forEach((key) => {
-        if (key !== "photos" && key !== "traits" && key !== "characteristics") {
-          formDataToSend.append(key, formData[key])
-        }
-      })
-
-      // Append arrays as JSON strings
-      formDataToSend.append("traits", JSON.stringify(formData.traits))
-      formDataToSend.append("characteristics", JSON.stringify(formData.characteristics))
-
-      // Append each photo
-      formData.photos.forEach((photo, index) => {
-        formDataToSend.append(`photo${index}`, photo)
-      })
-
-      const response = await axiosInstance.post("/pets/post-pet", formDataToSend, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      })
-
-      toast.success("Pet rehoming request submitted successfully!")
-      console.log(response.data)
-      // Reset form after successful submission
-      setFormData({
-        name: "",
-        age: "",
-        location: "",
-        weight: "",
-        breed: "",
-        gender: "",
-        description: "",
-        traits: [],
-        characteristics: [],
-        photos: [],
-      })
+      // Here you would typically send the data to your API
+      // This is a placeholder for the actual API call
+      
+      console.log("Submitting data:", { pet: petFormData, owner: ownerFormData })
+      
+      // Simulating API response
+      setTimeout(() => {
+        setSubmitMessage("Pet rehoming request submitted successfully!")
+        setIsSubmitting(false)
+        // Reset form after successful submission
+        setPetFormData({
+          name: "",
+          age: "",
+          location: "",
+          weight: "",
+          breed: "",
+          gender: "",
+          description: "",
+          traits: [],
+          characteristics: [],
+          photos: [],
+        })
+        setOwnerFormData({
+          fullName: "",
+          email: "",
+          phone: "",
+          reason: "",
+          acceptTerms: false
+        })
+        setStep(1)
+      }, 1500)
+      
     } catch (error) {
       console.error("Error submitting form:", error)
-      if (error.response && error.response.data) {
-        if (error.response.data.errors) {
-          error.response.data.errors.forEach((err) => toast.error(err))
-        } else {
-          toast.error(error.response.data.message || "Failed to submit pet rehoming request")
-        }
-      } else {
-        toast.error("Failed to submit pet rehoming request. Please try again.")
-      }
-    } finally {
+      setSubmitMessage("Failed to submit pet rehoming request. Please try again.")
       setIsSubmitting(false)
     }
   }
 
+  // Render pet details step
+  const renderPetDetailsStep = () => (
+    <>
+      <div className="space-y-6">
+        <div className="grid md:grid-cols-2 gap-6">
+          <div className="form-control">
+            <label className="label">
+              <span className="label-text">Pet Name</span>
+            </label>
+            <input
+              type="text"
+              name="name"
+              value={petFormData.name}
+              onChange={handlePetChange}
+              required
+              className="input input-bordered w-full"
+              placeholder="Enter pet's name"
+            />
+          </div>
+
+          <div className="form-control">
+            <label className="label">
+              <span className="label-text">Age</span>
+            </label>
+            <input
+              type="text"
+              name="age"
+              value={petFormData.age}
+              onChange={handlePetChange}
+              required
+              className="input input-bordered w-full"
+              placeholder="Pet's age (e.g., 3 years)"
+            />
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-6">
+          <div className="form-control">
+            <label className="label">
+              <span className="label-text">Location</span>
+            </label>
+            <input
+              type="text"
+              name="location"
+              value={petFormData.location}
+              onChange={handlePetChange}
+              required
+              className="input input-bordered w-full"
+              placeholder="City, State"
+            />
+          </div>
+
+          <div className="form-control">
+            <label className="label">
+              <span className="label-text">Weight</span>
+            </label>
+            <input
+              type="text"
+              name="weight"
+              value={petFormData.weight}
+              onChange={handlePetChange}
+              required
+              className="input input-bordered w-full"
+              placeholder="Weight (e.g., 10 lbs)"
+            />
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-6">
+          <div className="form-control">
+            <label className="label">
+              <span className="label-text">Breed</span>
+            </label>
+            <input
+              type="text"
+              name="breed"
+              value={petFormData.breed}
+              onChange={handlePetChange}
+              required
+              className="input input-bordered w-full"
+              placeholder="Pet's breed"
+            />
+          </div>
+
+          <div className="form-control">
+            <label className="label">
+              <span className="label-text">Gender</span>
+            </label>
+            <select
+              name="gender"
+              value={petFormData.gender}
+              onChange={handlePetChange}
+              required
+              className="select select-bordered w-full"
+            >
+              <option value="">Select Gender</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="form-control">
+          <label className="label">
+            <span className="label-text">Description</span>
+          </label>
+          <textarea
+            name="description"
+            value={petFormData.description}
+            onChange={handlePetChange}
+            required
+            className="textarea textarea-bordered w-full"
+            rows="4"
+            placeholder="Tell us about your pet's personality, habits, and special needs"
+          ></textarea>
+        </div>
+
+        <div className="form-control">
+          <label className="label">
+            <span className="label-text">Pet Traits</span>
+          </label>
+          <div className="flex items-center mb-4">
+            <input
+              type="text"
+              value={currentTrait}
+              onChange={(e) => setCurrentTrait(e.target.value)}
+              className="input input-bordered flex-grow rounded-r-none"
+              placeholder="Add a trait (e.g., friendly, playful)"
+            />
+            <button type="button" onClick={() => addItem("traits")} className="btn btn-primary rounded-l-none">
+              <PlusCircle className="w-5 h-5" />
+            </button>
+          </div>
+          <div className="flex flex-wrap gap-2 mb-4">
+            {petFormData.traits.map((trait, index) => (
+              <span key={index} className="badge badge-primary badge-lg">
+                {trait}
+                <button
+                  type="button"
+                  onClick={() => removeItem("traits", trait)}
+                  className="ml-2 text-primary-content hover:text-error"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <div className="form-control">
+          <label className="label">
+            <span className="label-text">Characteristics</span>
+          </label>
+          <div className="flex items-center mb-4">
+            <input
+              type="text"
+              value={currentCharacteristic}
+              onChange={(e) => setCurrentCharacteristic(e.target.value)}
+              className="input input-bordered flex-grow rounded-r-none"
+              placeholder="Add a characteristic (e.g., good with kids)"
+            />
+            <button
+              type="button"
+              onClick={() => addItem("characteristics")}
+              className="btn btn-secondary rounded-l-none"
+            >
+              <PlusCircle className="w-5 h-5" />
+            </button>
+          </div>
+          <div className="flex flex-wrap gap-2 mb-4">
+            {petFormData.characteristics.map((characteristic, index) => (
+              <span key={index} className="badge badge-secondary badge-lg">
+                {characteristic}
+                <button
+                  type="button"
+                  onClick={() => removeItem("characteristics", characteristic)}
+                  className="ml-2 text-secondary-content hover:text-error"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <div className="form-control">
+          <label className="label">
+            <span className="label-text">Pet Photos</span>
+          </label>
+          
+          {/* Photo upload area */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+            {/* Existing photos */}
+            {petFormData.photos.map((photo, index) => (
+              <div key={index} className="card bg-base-200 shadow-lg overflow-hidden">
+                <figure className="relative h-48">
+                  <img
+                    src={URL.createObjectURL(photo)}
+                    alt={`Pet photo ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeItem("photos", photo)}
+                    className="absolute top-2 right-2 btn btn-circle btn-sm btn-error"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </figure>
+                <div className="card-body p-3">
+                  <p className="text-sm text-center">Photo {index + 1}</p>
+                </div>
+              </div>
+            ))}
+            
+            {/* Upload new photo card (if less than 5 photos) */}
+            {petFormData.photos.length < 5 && (
+              <div className="card bg-base-200 shadow-lg overflow-hidden">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="hidden"
+                  id="photo-upload"
+                />
+                <label 
+                  htmlFor="photo-upload" 
+                  className="h-48 flex flex-col items-center justify-center cursor-pointer hover:bg-base-300 transition-colors"
+                >
+                  <Camera className="w-12 h-12 text-base-content/60 mb-2" />
+                  <p className="text-base-content/60 text-center px-4">Add Photo</p>
+                </label>
+                <div className="card-body p-3">
+                  <p className="text-sm text-center">Upload Photo</p>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          <p className="text-sm text-base-content/70 text-center">Upload up to 5 photos of your pet (PNG or JPEG)</p>
+        </div>
+      </div>
+      
+      <div className="mt-8 flex justify-end">
+        <button type="button" onClick={nextStep} className="btn btn-primary btn-lg">
+          Next Step <ChevronRight className="w-5 h-5 ml-1" />
+        </button>
+      </div>
+    </>
+  )
+  
+  // Render owner details step
+  const renderOwnerDetailsStep = () => (
+    <>
+      <div className="space-y-6">
+        <div className="bg-primary/10 rounded-lg p-4 mb-6">
+          <h3 className="font-bold text-lg mb-2 flex items-center">
+            <UserCircle className="w-5 h-5 mr-2" /> Owner Information
+          </h3>
+          <p className="text-sm">Please provide your contact details so potential adopters can reach you.</p>
+        </div>
+        
+        <div className="grid md:grid-cols-2 gap-6">
+          <div className="form-control">
+            <label className="label">
+              <span className="label-text">Full Name</span>
+            </label>
+            <input
+              type="text"
+              name="fullName"
+              value={ownerFormData.fullName}
+              onChange={handleOwnerChange}
+              required
+              className="input input-bordered w-full"
+              placeholder="Your full name"
+            />
+          </div>
+
+          <div className="form-control">
+            <label className="label">
+              <span className="label-text">Email Address</span>
+            </label>
+            <input
+              type="email"
+              name="email"
+              value={ownerFormData.email}
+              onChange={handleOwnerChange}
+              required
+              className="input input-bordered w-full"
+              placeholder="Your email address"
+            />
+          </div>
+        </div>
+
+        <div className="form-control">
+          <label className="label">
+            <span className="label-text">Phone Number</span>
+          </label>
+          <input
+            type="tel"
+            name="phone"
+            value={ownerFormData.phone}
+            onChange={handleOwnerChange}
+            required
+            className="input input-bordered w-full"
+            placeholder="Your phone number"
+          />
+        </div>
+
+        <div className="form-control">
+          <label className="label">
+            <span className="label-text">Reason for Rehoming</span>
+          </label>
+          <textarea
+            name="reason"
+            value={ownerFormData.reason}
+            onChange={handleOwnerChange}
+            required
+            className="textarea textarea-bordered w-full"
+            rows="4"
+            placeholder="Please explain why you need to find a new home for your pet"
+          ></textarea>
+        </div>
+        
+        <div className="bg-warning/10 rounded-lg p-6 border border-warning/30">
+          <h3 className="font-bold text-lg mb-3 flex items-center">
+            <FileCheck className="w-5 h-5 mr-2" /> Terms and Conditions
+          </h3>
+          <div className="text-sm mb-4 space-y-2">
+            <p>By submitting this form, you agree to the following terms:</p>
+            <ul className="list-disc list-inside space-y-1">
+              <li>All information provided is accurate and truthful</li>
+              <li>You are the legal owner of the pet being rehomed</li>
+              <li>You understand that we will share your contact information with potential adopters</li>
+              <li>You will participate in our screening process to ensure the pet goes to a suitable home</li>
+              <li>You will be available to answer questions about your pet from interested adopters</li>
+            </ul>
+          </div>
+          <div className="form-control">
+            <label className="label cursor-pointer justify-start gap-2">
+              <input 
+                type="checkbox" 
+                name="acceptTerms"
+                checked={ownerFormData.acceptTerms}
+                onChange={handleOwnerChange}
+                className="checkbox checkbox-primary" 
+              />
+              <span className="label-text">I accept the terms and conditions</span>
+            </label>
+          </div>
+        </div>
+      </div>
+      
+      <div className="mt-8 flex justify-between">
+        <button type="button" onClick={prevStep} className="btn btn-outline btn-lg">
+          <ChevronLeft className="w-5 h-5 mr-1" /> Back
+        </button>
+        <button type="submit" className="btn btn-primary btn-lg" disabled={isSubmitting}>
+          {isSubmitting ? "Submitting..." : "Submit Rehoming Request"}
+        </button>
+      </div>
+    </>
+  )
+  
+  // Render confirmation step
+  const renderConfirmationStep = () => (
+    <div className="text-center py-12">
+      <div className="text-6xl text-success mb-6">✓</div>
+      <h3 className="text-2xl font-bold mb-4">Thank You!</h3>
+      <p className="mb-6">Your pet rehoming request has been submitted successfully.</p>
+      <p className="mb-8">Our team will review your submission and it will be published on our platform soon.</p>
+      <button 
+        type="button" 
+        onClick={() => setStep(1)} 
+        className="btn btn-primary btn-lg"
+      >
+        Post Another Pet
+      </button>
+    </div>
+  )
+
   return (
-    <div className="min-h-screen bg-base-200 flex items-center justify-center p-6 pt-20">
-      {/* <Toaster position="top-right" toastOptions={{ duration: 4000 }} /> */}
-      <div className="w-full max-w-3xl bg-base-100 shadow-xl rounded-3xl overflow-hidden transition-all duration-300 hover:shadow-2xl">
+    <div className="min-h-screen bg-base-200 flex items-center justify-center p-6 pt-8 pb-16">
+      <div className="w-full max-w-4xl bg-base-100 shadow-xl rounded-3xl overflow-hidden transition-all duration-300 hover:shadow-2xl">
         <div className="bg-primary p-6">
           <h2 className="text-4xl font-extrabold text-primary-content text-center">
             <span>
@@ -159,248 +578,24 @@ const PetRehomingForm = () => {
             Find a New Home for Your Pet
           </h2>
         </div>
+        
+        {/* Progress indicator */}
+        <div className="p-4 bg-base-200 flex justify-center">
+          <ul className="steps">
+            <li className={`step ${step >= 1 ? "step-primary" : ""}`}>Pet Details</li>
+            <li className={`step ${step >= 2 ? "step-primary" : ""}`}>Owner Information</li>
+            <li className={`step ${step >= 3 ? "step-primary" : ""}`}>Confirmation</li>
+          </ul>
+        </div>
 
-        <form onSubmit={handleSubmit} className="p-8 space-y-6">
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text">Pet Name</span>
-              </label>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                required
-                className="input input-bordered w-full"
-                placeholder="Enter pet's name"
-              />
-            </div>
-
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text">Age</span>
-              </label>
-              <input
-                type="text"
-                name="age"
-                value={formData.age}
-                onChange={handleChange}
-                required
-                className="input input-bordered w-full"
-                placeholder="Pet's age (e.g., 3 years)"
-              />
-            </div>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text">Location</span>
-              </label>
-              <input
-                type="text"
-                name="location"
-                value={formData.location}
-                onChange={handleChange}
-                required
-                className="input input-bordered w-full"
-                placeholder="City, State"
-              />
-            </div>
-
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text">Weight</span>
-              </label>
-              <input
-                type="text"
-                name="weight"
-                value={formData.weight}
-                onChange={handleChange}
-                required
-                className="input input-bordered w-full"
-                placeholder="Weight (e.g., 10 lbs)"
-              />
-            </div>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text">Breed</span>
-              </label>
-              <input
-                type="text"
-                name="breed"
-                value={formData.breed}
-                onChange={handleChange}
-                required
-                className="input input-bordered w-full"
-                placeholder="Pet's breed"
-              />
-            </div>
-
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text">Gender</span>
-              </label>
-              <select
-                name="gender"
-                value={formData.gender}
-                onChange={handleChange}
-                required
-                className="select select-bordered w-full"
-              >
-                <option value="">Select Gender</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text">Description</span>
-            </label>
-            <textarea
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              required
-              className="textarea textarea-bordered w-full"
-              rows="4"
-              placeholder="Tell us about your pet's personality, habits, and special needs"
-            ></textarea>
-          </div>
-
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text">Pet Traits</span>
-            </label>
-            <div className="flex items-center mb-4">
-              <input
-                type="text"
-                value={currentTrait}
-                onChange={(e) => setCurrentTrait(e.target.value)}
-                className="input input-bordered flex-grow rounded-r-none"
-                placeholder="Add a trait (e.g., friendly, playful)"
-              />
-              <button type="button" onClick={() => addItem("traits")} className="btn btn-primary rounded-l-none">
-                <PlusCircle className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="flex flex-wrap gap-2 mb-4">
-              {formData.traits.map((trait, index) => (
-                <span key={index} className="badge badge-primary badge-lg">
-                  {trait}
-                  <button
-                    type="button"
-                    onClick={() => removeItem("traits", trait)}
-                    className="ml-2 text-primary-content hover:text-error"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text">Characteristics</span>
-            </label>
-            <div className="flex items-center mb-4">
-              <input
-                type="text"
-                value={currentCharacteristic}
-                onChange={(e) => setCurrentCharacteristic(e.target.value)}
-                className="input input-bordered flex-grow rounded-r-none"
-                placeholder="Add a characteristic (e.g., good with kids)"
-              />
-              <button
-                type="button"
-                onClick={() => addItem("characteristics")}
-                className="btn btn-secondary rounded-l-none"
-              >
-                <PlusCircle className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="flex flex-wrap gap-2 mb-4">
-              {formData.characteristics.map((characteristic, index) => (
-                <span key={index} className="badge badge-secondary badge-lg">
-                  {characteristic}
-                  <button
-                    type="button"
-                    onClick={() => removeItem("characteristics", characteristic)}
-                    className="ml-2 text-secondary-content hover:text-error"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text">Upload Photos</span>
-            </label>
-            <div className="border-2 border-dashed border-base-300 rounded-lg p-6 text-center">
-              <input
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={handleFileChange}
-                className="hidden"
-                id="photo-upload"
-              />
-              <label htmlFor="photo-upload" className="cursor-pointer flex flex-col items-center justify-center">
-                <Upload className="w-12 h-12 text-base-content mb-4" />
-                <p className="text-base-content mb-2">Drag and drop or click to upload photos</p>
-                <p className="text-sm text-base-content/70">(Maximum 5 photos, PNG or JPEG)</p>
-              </label>
-            </div>
-            {formData.photos.length > 0 && (
-              <div className="flex flex-wrap gap-4 mt-4">
-                {formData.photos.map((photo, index) => (
-                  <div key={index} className="relative w-32 h-32 rounded-lg overflow-hidden shadow-md">
-                    <img
-                      src={URL.createObjectURL(photo) || "/placeholder.svg"}
-                      alt={`Pet photo ${index + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeItem("photos", photo)}
-                      className="absolute top-2 right-2 btn btn-circle btn-xs btn-error"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="text-center mt-8">
-            <button type="submit" className="btn btn-primary btn-lg" disabled={isSubmitting}>
-              {isSubmitting ? "Submitting..." : "Submit Rehoming Request"}
-            </button>
-          </div>
-
-          {submitMessage && (
-            <div
-              className={`mt-4 p-4 rounded ${submitMessage.includes("successfully") ? "bg-success text-success-content" : "bg-error text-error-content"}`}
-            >
-              {submitMessage}
-            </div>
-          )}
+        <form onSubmit={handleSubmit} className="p-8">
+          {step === 1 && renderPetDetailsStep()}
+          {step === 2 && renderOwnerDetailsStep()}
+          {step === 3 && renderConfirmationStep()}
         </form>
       </div>
     </div>
   )
 }
 
-export default PetRehomingForm
-
+export default EnhancedPetRehomingForm
