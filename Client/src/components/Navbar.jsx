@@ -18,11 +18,17 @@ const Navbar = () => {
                 <PawPrint className="w-5 h-5 text-primary" />
               </div>
               <h1 className="text-lg font-bold">PetPal</h1>
-              
             </Link>
           </div>
 
           <div className="flex items-center gap-2">
+            <Link
+              to="/ngo_signin"
+              className="btn btn-sm btn-primary gap-2"
+            >
+              <span>Login as NGO Worker</span>
+            </Link>
+            
             <Link
               to={"/settings"}
               className={`

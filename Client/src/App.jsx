@@ -18,6 +18,7 @@ import PetRehomingForm from "./pages/Rehome/RehomePet";
 import VetServicesPage from "./pages/VetServices/VetServices";
 import PetpalAdminDashboard from "./pages/AdminPanel/PetpalAdminDashboard";
 
+
 export default function App() {
   const {authUser, checkAuth, isCheckingAuth} = useAuthStore();
   const {theme} = useThemeStore()
@@ -43,6 +44,7 @@ export default function App() {
         <Route path="/" element={authUser ? <LandingPage />:<Navigate to="/login" />} />
         <Route path="/signup" element={!authUser ? <SignUpPage />:<Navigate to="/" />} />
         <Route path="/login" element={!authUser ? <LoginPage />: <Navigate to="/" />} />
+       
         <Route path="/settings" element={<SettingPage />} />
         <Route path="/profile" element={authUser ? <ProfilePage />: <Navigate to="/login" />} />
         <Route path="/adopt" element = {<PetAdoptionStore />} />
