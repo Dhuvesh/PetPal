@@ -91,6 +91,15 @@ const LandingPage = () => {
       image: "https://img.freepik.com/free-photo/close-up-beautiful-pet-cat_23-2150285612.jpg?t=st=1737830143~exp=1737833743~hmac=d7c42330bf037612b421a947e26c46a6174adf6e95c761a68a0212a1f7130bd8&w=996",
       description: "Calm and regal, loves quiet environments.",
     },
+    {
+      id: 5,
+      name: "Mittens",
+      type: "cat",
+      breed: "Persian",
+      age: "5 years",
+      image: "https://img.freepik.com/free-photo/close-up-beautiful-pet-cat_23-2150285612.jpg?t=st=1737830143~exp=1737833743~hmac=d7c42330bf037612b421a947e26c46a6174adf6e95c761a68a0212a1f7130bd8&w=996",
+      description: "Calm and regal, loves quiet environments.",
+    },
   ]
 
   const filteredPets = selectedPetType === "all" ? pets : pets.filter((pet) => pet.type === selectedPetType)

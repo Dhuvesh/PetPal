@@ -125,7 +125,7 @@ const DonationPage = () => {
   return (
     <div className="min-h-screen bg-base-100">
       {/* Hero Section */}
-      <section className="relative bg-base-200 py-20">
+      <section className="relative bg-base-200 py-28">
         <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-accent/10"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center">

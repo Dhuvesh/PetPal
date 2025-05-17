@@ -25,6 +25,7 @@ const EnhancedPetRehomingForm = () => {
     fullName: "",
     email: "",
     phone: "",
+    address: "",
     reason: "",
     acceptTerms: false
   })
@@ -110,6 +111,7 @@ const EnhancedPetRehomingForm = () => {
     if (!ownerFormData.fullName.trim()) errors.push("Full name is required")
     if (!ownerFormData.email.trim()) errors.push("Email is required")
     if (!ownerFormData.phone.trim()) errors.push("Phone number is required")
+    if (!ownerFormData.address.trim()) errors.push("Address is required")
     if (!ownerFormData.reason.trim()) errors.push("Reason for rehoming is required")
     if (!ownerFormData.acceptTerms) errors.push("You must accept the terms and conditions")
     
@@ -152,6 +154,9 @@ const EnhancedPetRehomingForm = () => {
       
       console.log("Submitting data:", { pet: petFormData, owner: ownerFormData })
       
+      // Display alert for successful submission
+      alert("Your rehome request was sent successfully")
+      
       // Simulating API response
       setTimeout(() => {
         setSubmitMessage("Pet rehoming request submitted successfully!")
@@ -173,6 +178,7 @@ const EnhancedPetRehomingForm = () => {
           fullName: "",
           email: "",
           phone: "",
+          address: "",
           reason: "",
           acceptTerms: false
         })
@@ -431,7 +437,7 @@ const EnhancedPetRehomingForm = () => {
       
       <div className="mt-8 flex justify-end">
         <button type="button" onClick={nextStep} className="btn btn-primary btn-lg">
-          Next Step <ChevronRight className="w-5 h-5 ml-1" />
+          Proceed Further <ChevronRight className="w-5 h-5 ml-1" />
         </button>
       </div>
     </>
@@ -480,19 +486,36 @@ const EnhancedPetRehomingForm = () => {
           </div>
         </div>
 
-        <div className="form-control">
-          <label className="label">
-            <span className="label-text">Phone Number</span>
-          </label>
-          <input
-            type="tel"
-            name="phone"
-            value={ownerFormData.phone}
-            onChange={handleOwnerChange}
-            required
-            className="input input-bordered w-full"
-            placeholder="Your phone number"
-          />
+        <div className="grid md:grid-cols-2 gap-6">
+          <div className="form-control">
+            <label className="label">
+              <span className="label-text">Phone Number</span>
+            </label>
+            <input
+              type="tel"
+              name="phone"
+              value={ownerFormData.phone}
+              onChange={handleOwnerChange}
+              required
+              className="input input-bordered w-full"
+              placeholder="Your phone number"
+            />
+          </div>
+          
+          <div className="form-control">
+            <label className="label">
+              <span className="label-text">Address</span>
+            </label>
+            <input
+              type="text"
+              name="address"
+              value={ownerFormData.address}
+              onChange={handleOwnerChange}
+              required
+              className="input input-bordered w-full"
+              placeholder="Your address"
+            />
+          </div>
         </div>
 
         <div className="form-control">
@@ -543,8 +566,8 @@ const EnhancedPetRehomingForm = () => {
         <button type="button" onClick={prevStep} className="btn btn-outline btn-lg">
           <ChevronLeft className="w-5 h-5 mr-1" /> Back
         </button>
-        <button type="submit" className="btn btn-primary btn-lg" disabled={isSubmitting}>
-          {isSubmitting ? "Submitting..." : "Submit Rehoming Request"}
+        <button type="button" onClick={nextStep} className="btn btn-primary btn-lg">
+          Proceed Further <ChevronRight className="w-5 h-5 ml-1" />
         </button>
       </div>
     </>
@@ -553,22 +576,46 @@ const EnhancedPetRehomingForm = () => {
   // Render confirmation step
   const renderConfirmationStep = () => (
     <div className="text-center py-12">
-      <div className="text-6xl text-success mb-6">✓</div>
-      <h3 className="text-2xl font-bold mb-4">Thank You!</h3>
-      <p className="mb-6">Your pet rehoming request has been submitted successfully.</p>
-      <p className="mb-8">Our team will review your submission and it will be published on our platform soon.</p>
-      <button 
-        type="button" 
-        onClick={() => setStep(1)} 
-        className="btn btn-primary btn-lg"
-      >
-        Post Another Pet
-      </button>
+      <h3 className="text-2xl font-bold mb-6">Are you confirm for rehoming?</h3>
+      <div className="bg-base-200 p-6 rounded-lg mb-8 max-w-lg mx-auto">
+        <h4 className="font-bold text-lg mb-4">Review your information:</h4>
+        
+        <div className="mb-4">
+          <h5 className="font-semibold">Pet Details</h5>
+          <p className="text-sm">Name: {petFormData.name}</p>
+          <p className="text-sm">Breed: {petFormData.breed}</p>
+          <p className="text-sm">Age: {petFormData.age}</p>
+        </div>
+        
+        <div>
+          <h5 className="font-semibold">Owner Details</h5>
+          <p className="text-sm">Name: {ownerFormData.fullName}</p>
+          <p className="text-sm">Email: {ownerFormData.email}</p>
+          <p className="text-sm">Phone: {ownerFormData.phone}</p>
+        </div>
+      </div>
+      
+      <div className="flex justify-center gap-4">
+        <button 
+          type="button" 
+          onClick={prevStep} 
+          className="btn btn-outline btn-lg"
+        >
+          Go Back
+        </button>
+        <button 
+          type="submit" 
+          className="btn btn-primary btn-lg"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? "Submitting..." : "Submit Rehoming Request"}
+        </button>
+      </div>
     </div>
   )
 
   return (
-    <div className="min-h-screen bg-base-200 flex items-center justify-center p-6 pt-8 pb-16">
+    <div className="min-h-screen bg-base-200 flex items-center justify-center p-6 pt-16 pb-16 mt-16">
       <div className="w-full max-w-4xl bg-base-100 shadow-xl rounded-3xl overflow-hidden transition-all duration-300 hover:shadow-2xl">
         <div className="bg-primary p-6">
           <h2 className="text-4xl font-extrabold text-primary-content text-center">
