@@ -21,7 +21,6 @@ const PetpalAdminDashboard = () => {
 
   const menuItems = [
     { name: 'Dashboard', icon: LayoutDashboard },
-    { name: 'Owner Verification', icon: ShieldCheck },
     { name: 'Add Pet', icon: PlusCircle },
     { name: 'Donation Management', icon: Heart },
     { name: 'Adoption Applications', icon: ClipboardList },
@@ -168,60 +167,7 @@ const DashboardPage = () => (
   </div>
 );
 
-const VerificationPage = ({ requests }) => (
-  <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-    <div className="p-4 border-b border-gray-200 flex justify-between items-center">
-      <h2 className="font-semibold">Verification Requests</h2>
-      <div className="flex space-x-2">
-        <button className="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg text-sm">
-          <Filter className="w-4 h-4 inline mr-1" />
-          Filter
-        </button>
-        <button className="px-3 py-1 bg-black text-white rounded-lg text-sm">
-          <ArrowUpRight className="w-4 h-4 inline mr-1" />
-          Export
-        </button>
-      </div>
-    </div>
-    
-    <table className="w-full">
-      <thead>
-        <tr className="bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">
-          <th className="px-4 py-2">ID</th>
-          <th className="px-4 py-2">Owner Name</th>
-          <th className="px-4 py-2">Date</th>
-          <th className="px-4 py-2">Status</th>
-          <th className="px-4 py-2">Action</th>
-        </tr>
-      </thead>
-      <tbody className="divide-y divide-gray-200">
-        {requests.map((request) => (
-          <tr key={request.id} className="hover:bg-gray-50">
-            <td className="px-4 py-3 text-sm">#{request.id}</td>
-            <td className="px-4 py-3 text-sm">{request.name}</td>
-            <td className="px-4 py-3 text-sm text-gray-500">{request.date}</td>
-            <td className="px-4 py-3">
-              <span className="inline-flex px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-800">
-                Pending
-              </span>
-            </td>
-            <td className="px-4 py-3 text-sm">
-              <div className="flex space-x-2">
-                <button className="p-1 rounded hover:bg-green-100">
-                  <Check className="w-4 h-4 text-green-600" />
-                </button>
-                <button className="p-1 rounded hover:bg-red-100">
-                  <X className="w-4 h-4 text-red-600" />
-                </button>
-                <button className="text-blue-600 text-xs underline">View</button>
-              </div>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-);
+
 
 const AddPetPage = () => (
   <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
