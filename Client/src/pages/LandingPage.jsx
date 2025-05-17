@@ -18,6 +18,10 @@ import {
   Twitter,
   Instagram,
   Linkedin,
+  Search,
+  FileText,
+  PhoneCall,
+  Check
 } from "lucide-react"
 import { Link } from "react-router-dom"
 
@@ -206,8 +210,79 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Services Section */}
+      {/* Adoption Process Section - NEW */}
       <section className="py-16 bg-base-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-bold text-center mb-12 text-base-content">
+            Our Simple Adoption Process
+            <div className="w-24 h-1 bg-primary mx-auto mt-4"></div>
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            {/* Step 1 */}
+            <div className="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 relative overflow-hidden">
+              <div className="absolute -top-2 -left-2 bg-primary text-primary-content rounded-br-lg w-12 h-12 flex items-center justify-center font-bold text-2xl">1</div>
+              <div className="card-body items-center text-center pt-10">
+                <Search className="w-16 h-16 text-primary mb-4" />
+                <h3 className="card-title">Choose Your Pet</h3>
+                <p className="text-base-content/70 text-sm mt-2">
+                  Browse our available pets and find the perfect match for your home and lifestyle.
+                </p>
+              </div>
+            </div>
+            
+            {/* Step 2 */}
+            <div className="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 relative overflow-hidden">
+              <div className="absolute -top-2 -left-2 bg-primary text-primary-content rounded-br-lg w-12 h-12 flex items-center justify-center font-bold text-2xl">2</div>
+              <div className="card-body items-center text-center pt-10">
+                <FileText className="w-16 h-16 text-primary mb-4" />
+                <h3 className="card-title">Fill The Form</h3>
+                <p className="text-base-content/70 text-sm mt-2">
+                  Complete our adoption application with your details and home environment information.
+                </p>
+              </div>
+            </div>
+            
+            {/* Step 3 */}
+            <div className="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 relative overflow-hidden">
+              <div className="absolute -top-2 -left-2 bg-primary text-primary-content rounded-br-lg w-12 h-12 flex items-center justify-center font-bold text-2xl">3</div>
+              <div className="card-body items-center text-center pt-10">
+                <PhoneCall className="w-16 h-16 text-primary mb-4" />
+                <h3 className="card-title">We Contact You</h3>
+                <p className="text-base-content/70 text-sm mt-2">
+                  Our team will reach out within 48 hours to discuss next steps and arrange a meeting.
+                </p>
+              </div>
+            </div>
+            
+            {/* Step 4 */}
+            <div className="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 relative overflow-hidden">
+              <div className="absolute -top-2 -left-2 bg-primary text-primary-content rounded-br-lg w-12 h-12 flex items-center justify-center font-bold text-2xl">4</div>
+              <div className="card-body items-center text-center pt-10">
+                <Check className="w-16 h-16 text-primary mb-4" />
+                <h3 className="card-title">Welcome Home</h3>
+                <p className="text-base-content/70 text-sm mt-2">
+                  Complete the adoption process and welcome your new family member home!
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="mt-12 text-center">
+            <Link to="/adopt">
+              <button className="btn btn-primary btn-lg hover:-translate-y-0.5 transition-transform duration-200">
+                Start Your Adoption Journey Today
+              </button>
+            </Link>
+            <p className="mt-4 text-base-content/70 text-sm max-w-2xl mx-auto">
+              Our adoption counselors are ready to help you find the perfect companion and guide you through each step of the process. We're committed to making sure every pet finds the right forever home.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Services Section */}
+      <section className="py-16 bg-base-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-center mb-12 text-base-content">Our Comprehensive Services</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -234,7 +309,7 @@ const LandingPage = () => {
             ].map((service, index) => (
               <div
                 key={index}
-                className="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 hover:bg-base-200"
+                className="card bg-base-200 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 hover:bg-base-100"
               >
                 <div className="card-body items-center text-center">
                   {service.icon}
@@ -254,8 +329,6 @@ const LandingPage = () => {
           </div>
         </div>
       </section>
-
-      {/* About Us Section (Previous section remains the same) */}
 
       {/* Why Choose Us Section */}
       <section className="py-16 bg-base-200">
@@ -308,8 +381,6 @@ const LandingPage = () => {
           </div>
         </div>
       </section>
-
-      {/* Contact Section (Previous section remains the same) */}
 
       {/* Footer */}
       <footer className="footer p-10 bg-base-300 text-base-content border-t border-base-content/10">
@@ -410,4 +481,3 @@ const LandingPage = () => {
 }
 
 export default LandingPage
-
