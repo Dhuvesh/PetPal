@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { useParams } from "react-router-dom"
-import { Heart, MapPin, Weight, Ruler, ArrowLeft, ArrowRight, PawPrint, Calendar, User } from "lucide-react"
+import { Heart, MapPin, Weight, Ruler, ArrowLeft, ArrowRight, PawPrint, Calendar, User, Mail, Phone, Home, MessageCircle } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 
 const PetDetailsPage = () => {
@@ -201,12 +201,61 @@ const PetDetailsPage = () => {
               </div>
             </motion.div>
 
+            {/* Owner Details - New Section */}
+            {pet.owner && (
+              <motion.div
+                className="mb-8"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6, duration: 0.5 }}
+              >
+                <h2 className="text-2xl font-semibold mb-3 text-base-content">Current Owner</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="bg-base-200 p-4 rounded-xl flex items-center space-x-3 transition-all duration-300 hover:bg-base-300 hover:shadow-md">
+                    <User className="text-primary" size={24} />
+                    <div>
+                      <p className="text-sm text-base-content/70">Full Name</p>
+                      <p className="font-semibold text-base-content">{pet.owner.fullName}</p>
+                    </div>
+                  </div>
+                  <div className="bg-base-200 p-4 rounded-xl flex items-center space-x-3 transition-all duration-300 hover:bg-base-300 hover:shadow-md">
+                    <Mail className="text-primary" size={24} />
+                    <div>
+                      <p className="text-sm text-base-content/70">Email</p>
+                      <p className="font-semibold text-base-content">{pet.owner.email}</p>
+                    </div>
+                  </div>
+                  <div className="bg-base-200 p-4 rounded-xl flex items-center space-x-3 transition-all duration-300 hover:bg-base-300 hover:shadow-md">
+                    <Phone className="text-primary" size={24} />
+                    <div>
+                      <p className="text-sm text-base-content/70">Phone</p>
+                      <p className="font-semibold text-base-content">{pet.owner.phone}</p>
+                    </div>
+                  </div>
+                  <div className="bg-base-200 p-4 rounded-xl flex items-center space-x-3 transition-all duration-300 hover:bg-base-300 hover:shadow-md">
+                    <Home className="text-primary" size={24} />
+                    <div>
+                      <p className="text-sm text-base-content/70">Address</p>
+                      <p className="font-semibold text-base-content">{pet.owner.address}</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-4 bg-base-200 p-4 rounded-xl transition-all duration-300 hover:bg-base-300 hover:shadow-md">
+                  <div className="flex items-center space-x-3 mb-2">
+                    <MessageCircle className="text-primary" size={24} />
+                    <p className="text-sm text-base-content/70">Reason for Rehoming</p>
+                  </div>
+                  <p className="text-base-content/90 pl-8">{pet.owner.reason}</p>
+                </div>
+              </motion.div>
+            )}
+
             {/* Adoption Button */}
             <motion.div
               className="text-center"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6, duration: 0.5 }}
+              transition={{ delay: 0.7, duration: 0.5 }}
             >
               <button className="btn btn-primary btn-lg font-bold py-4 px-8 rounded-full text-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50">
                 Adopt {pet.name}
@@ -220,4 +269,3 @@ const PetDetailsPage = () => {
 }
 
 export default PetDetailsPage
-

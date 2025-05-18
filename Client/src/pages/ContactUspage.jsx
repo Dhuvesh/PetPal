@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   PhoneCall,
   Mail,
@@ -14,9 +14,13 @@ import {
   Twitter,
   Instagram,
   Linkedin,
-  Heart
+  Heart,
+  AlertCircle,
+  CheckCircle,
+  X
 } from "lucide-react"
 import { Link } from "react-router-dom"
+import axios from "axios"
 
 const ContactPage = () => {
   const [formData, setFormData] = useState({
@@ -28,23 +32,72 @@ const ContactPage = () => {
   })
   
   const [openFaq, setOpenFaq] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [toast, setToast] = useState({
+    show: false,
+    message: "",
+    type: "success", // success or error
+  })
   
   const handleChange = (e) => {
     const { name, value } = e.target
     setFormData({ ...formData, [name]: value })
   }
   
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    // In a real application, this would send the form data to a backend
-    alert("Thank you for your message! We'll get back to you shortly.")
-    setFormData({
-      name: "",
-      email: "",
-      phone: "",
-      subject: "",
-      message: "",
+    setLoading(true)
+    
+    try {
+      const response = await axios.post('http://localhost:3000/api/contacts', formData)
+      
+      // Show success toast
+      showToast("Thank you for your message! We'll get back to you shortly.", "success")
+      
+      // Reset form
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        subject: "",
+        message: "",
+      })
+    } catch (error) {
+      console.error('Error submitting form:', error)
+      
+      // Determine error message based on error response
+      let errorMessage = "There was a problem sending your message. Please try again."
+      
+      if (error.response && error.response.data && error.response.data.error) {
+        if (Array.isArray(error.response.data.error)) {
+          errorMessage = error.response.data.error.join(", ")
+        } else {
+          errorMessage = error.response.data.error
+        }
+      }
+      
+      // Show error toast
+      showToast(errorMessage, "error")
+    } finally {
+      setLoading(false)
+    }
+  }
+  
+  const showToast = (message, type) => {
+    setToast({
+      show: true,
+      message,
+      type
     })
+    
+    // Auto-hide toast after 5 seconds
+    setTimeout(() => {
+      setToast(prev => ({ ...prev, show: false }))
+    }, 5000)
+  }
+  
+  const hideToast = () => {
+    setToast(prev => ({ ...prev, show: false }))
   }
   
   const toggleFaq = (index) => {
@@ -124,6 +177,35 @@ const ContactPage = () => {
 
   return (
     <div className="min-h-screen bg-base-100">
+      {/* Toast Notification */}
+      {toast.show && (
+        <div className={`fixed top-4 right-4 z-50 w-96 shadow-lg rounded-lg overflow-hidden transition-all duration-300 ${toast.type === "success" ? "bg-success text-success-content" : "bg-error text-error-content"}`}>
+          <div className="flex items-center justify-between p-4">
+            <div className="flex items-center">
+              {toast.type === "success" ? (
+                <CheckCircle className="h-6 w-6 mr-3" />
+              ) : (
+                <AlertCircle className="h-6 w-6 mr-3" />
+              )}
+              <p className="font-medium">{toast.message}</p>
+            </div>
+            <button 
+              onClick={hideToast}
+              className="p-1 rounded-full hover:bg-black/10 transition-colors duration-200"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+          <div 
+            className={`h-1 ${toast.type === "success" ? "bg-success-content/30" : "bg-error-content/30"}`}
+            style={{
+              width: "100%",
+              animation: "shrink 5s linear forwards"
+            }}
+          ></div>
+        </div>
+      )}
+
       {/* Hero Section */}
       <section className="bg-base-200 py-28">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -185,6 +267,7 @@ const ContactPage = () => {
                         placeholder="John Doe"
                         className="input input-bordered w-full"
                         required
+                        disabled={loading}
                       />
                     </div>
                     <div className="form-control">
@@ -199,6 +282,7 @@ const ContactPage = () => {
                         placeholder="john@example.com"
                         className="input input-bordered w-full"
                         required
+                        disabled={loading}
                       />
                     </div>
                   </div>
@@ -214,6 +298,7 @@ const ContactPage = () => {
                         onChange={handleChange}
                         placeholder="(555) 123-4567"
                         className="input input-bordered w-full"
+                        disabled={loading}
                       />
                     </div>
                     <div className="form-control">
@@ -226,6 +311,7 @@ const ContactPage = () => {
                         onChange={handleChange}
                         className="select select-bordered w-full"
                         required
+                        disabled={loading}
                       >
                         <option value="" disabled>Select a subject</option>
                         <option value="adoption">Pet Adoption</option>
@@ -247,14 +333,22 @@ const ContactPage = () => {
                       className="textarea textarea-bordered h-32"
                       placeholder="How can we help you?"
                       required
+                      disabled={loading}
                     ></textarea>
                   </div>
                   <div className="form-control mt-6">
                     <button
                       type="submit"
-                      className="btn btn-primary hover:-translate-y-0.5 transition-transform duration-200"
+                      className={`btn btn-primary hover:-translate-y-0.5 transition-transform duration-200 ${loading ? "loading" : ""}`}
+                      disabled={loading}
                     >
-                      <Send className="mr-2 h-4 w-4" /> Send Message
+                      {loading ? (
+                        "Sending..."
+                      ) : (
+                        <>
+                          <Send className="mr-2 h-4 w-4" /> Send Message
+                        </>
+                      )}
                     </button>
                   </div>
                 </form>
@@ -483,6 +577,14 @@ const ContactPage = () => {
           </p>
         </div>
       </div>
+      
+      {/* Custom CSS for toast animation */}
+      <style jsx>{`
+        @keyframes shrink {
+          from { width: 100%; }
+          to { width: 0%; }
+        }
+      `}</style>
     </div>
   )
 }

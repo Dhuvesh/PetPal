@@ -10,6 +10,7 @@ const GetPet = async (req, res) => {
     res.status(500).json({ message: "Error fetching pets", error: error.message })
   }
 }
+
 const GetPetById = async (req, res) => {
   try {
     const pet = await Pet.findById(req.params.id)
@@ -23,14 +24,18 @@ const GetPetById = async (req, res) => {
   }
 }
 
-
 const PostPet = async (req, res) => {
   try {
-    const { name, age, location, weight, breed, gender, description, traits, characteristics } = req.body
+    // Parse pet information
+    const { 
+      name, age, location, weight, breed, gender, description, traits, characteristics,
+      // Owner information
+      fullName, email, phone, address, reason
+    } = req.body
 
     // Parse traits and characteristics from JSON strings to arrays
-    const parsedTraits = JSON.parse(traits || "[]")
-    const parsedCharacteristics = JSON.parse(characteristics || "[]")
+    const parsedTraits = typeof traits === 'string' ? JSON.parse(traits || "[]") : traits
+    const parsedCharacteristics = typeof characteristics === 'string' ? JSON.parse(characteristics || "[]") : characteristics
 
     // Upload photos to Cloudinary
     const photoUrls = []
@@ -48,7 +53,15 @@ const PostPet = async (req, res) => {
       }
     }
 
+    // Validate required fields
+    if (!name || !age || !location || !weight || !breed || !gender || !description || 
+        parsedTraits.length === 0 || parsedCharacteristics.length === 0 || photoUrls.length === 0 ||
+        !fullName || !email || !phone || !address || !reason) {
+      return res.status(400).json({ message: "Missing required fields" })
+    }
+
     const newPet = new Pet({
+      // Pet details
       name,
       age,
       location,
@@ -59,6 +72,15 @@ const PostPet = async (req, res) => {
       traits: parsedTraits,
       characteristics: parsedCharacteristics,
       photos: photoUrls,
+      
+      // Owner details
+      owner: {
+        fullName,
+        email,
+        phone,
+        address,
+        reason
+      }
     })
 
     await newPet.save()
@@ -71,4 +93,3 @@ const PostPet = async (req, res) => {
 }
 
 export { GetPet, GetPetById, PostPet }
-

@@ -1,10 +1,12 @@
 import { useState } from "react"
 import { X, PlusCircle, Upload, PawPrint, ChevronRight, ChevronLeft, Camera, UserCircle, FileCheck } from "lucide-react"
+import axios from "axios" // Make sure axios is installed and imported
 
 const EnhancedPetRehomingForm = () => {
   const [step, setStep] = useState(1)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitMessage, setSubmitMessage] = useState("")
+  const [submitSuccess, setSubmitSuccess] = useState(false)
   
   // Pet details
   const [petFormData, setPetFormData] = useState({
@@ -134,6 +136,35 @@ const EnhancedPetRehomingForm = () => {
     setStep(step - 1)
   }
 
+  const showToast = (message, isSuccess = true) => {
+    // Create toast element
+    const toast = document.createElement("div")
+    toast.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg ${
+      isSuccess ? "bg-green-500" : "bg-red-500"
+    } text-white font-bold z-50 flex items-center justify-between min-w-[300px]`
+    
+    // Add message and close button
+    toast.innerHTML = `
+      <span>${message}</span>
+      <button class="ml-4 hover:text-gray-200">✕</button>
+    `
+    
+    // Add to document
+    document.body.appendChild(toast)
+    
+    // Add event listener to close button
+    toast.querySelector("button").addEventListener("click", () => {
+      document.body.removeChild(toast)
+    })
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+      if (document.body.contains(toast)) {
+        document.body.removeChild(toast)
+      }
+    }, 5000)
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     
@@ -149,18 +180,50 @@ const EnhancedPetRehomingForm = () => {
     setSubmitMessage("")
 
     try {
-      // Here you would typically send the data to your API
-      // This is a placeholder for the actual API call
+      // Create FormData object to send both text fields and files
+      const formData = new FormData()
       
-      console.log("Submitting data:", { pet: petFormData, owner: ownerFormData })
+      // Add pet details
+      formData.append("name", petFormData.name)
+      formData.append("age", petFormData.age)
+      formData.append("location", petFormData.location)
+      formData.append("weight", petFormData.weight)
+      formData.append("breed", petFormData.breed)
+      formData.append("gender", petFormData.gender)
+      formData.append("description", petFormData.description)
       
-      // Display alert for successful submission
-      alert("Your rehome request was sent successfully")
+      // Add traits and characteristics as JSON strings
+      formData.append("traits", JSON.stringify(petFormData.traits))
+      formData.append("characteristics", JSON.stringify(petFormData.characteristics))
       
-      // Simulating API response
-      setTimeout(() => {
+      // Add photos
+      petFormData.photos.forEach((photo, index) => {
+        formData.append(`photo${index}`, photo)
+      })
+      
+      // Add owner details
+      formData.append("fullName", ownerFormData.fullName)
+      formData.append("email", ownerFormData.email)
+      formData.append("phone", ownerFormData.phone)
+      formData.append("address", ownerFormData.address)
+      formData.append("reason", ownerFormData.reason)
+      
+      // Make API call using axios - use the correct endpoint path
+      // This fix ensures we're using the correct endpoint that matches your backend routes
+      const response = await axios.post("http://localhost:3000/api/pets/post-pet", formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+      
+      // Check if the request was successful
+      if (response.status === 201) {
+        // Show success toast message
+        showToast("Pet added successfully!", true)
+        
+        setSubmitSuccess(true)
         setSubmitMessage("Pet rehoming request submitted successfully!")
-        setIsSubmitting(false)
+        
         // Reset form after successful submission
         setPetFormData({
           name: "",
@@ -174,6 +237,7 @@ const EnhancedPetRehomingForm = () => {
           characteristics: [],
           photos: [],
         })
+        
         setOwnerFormData({
           fullName: "",
           email: "",
@@ -182,12 +246,18 @@ const EnhancedPetRehomingForm = () => {
           reason: "",
           acceptTerms: false
         })
+        
         setStep(1)
-      }, 1500)
-      
+      }
     } catch (error) {
       console.error("Error submitting form:", error)
-      setSubmitMessage("Failed to submit pet rehoming request. Please try again.")
+      
+      // Show error toast message with more details
+      const errorMessage = error.response?.data?.message || "Failed to submit pet rehoming request. Please try again.";
+      showToast(errorMessage, false)
+      
+      setSubmitMessage(errorMessage)
+    } finally {
       setIsSubmitting(false)
     }
   }
@@ -576,7 +646,7 @@ const EnhancedPetRehomingForm = () => {
   // Render confirmation step
   const renderConfirmationStep = () => (
     <div className="text-center py-12">
-      <h3 className="text-2xl font-bold mb-6">Are you confirm for rehoming?</h3>
+      <h3 className="text-2xl font-bold mb-6">Are you ready to submit your rehoming request?</h3>
       <div className="bg-base-200 p-6 rounded-lg mb-8 max-w-lg mx-auto">
         <h4 className="font-bold text-lg mb-4">Review your information:</h4>
         
@@ -594,6 +664,13 @@ const EnhancedPetRehomingForm = () => {
           <p className="text-sm">Phone: {ownerFormData.phone}</p>
         </div>
       </div>
+      
+      {submitSuccess && (
+        <div className="alert alert-success mb-6">
+          <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          <span>{submitMessage}</span>
+        </div>
+      )}
       
       <div className="flex justify-center gap-4">
         <button 

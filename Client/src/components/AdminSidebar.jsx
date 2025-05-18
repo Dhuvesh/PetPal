@@ -1,70 +1,96 @@
 import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
-  ShieldCheck, 
-  PlusCircle, 
+  Users, 
   Heart, 
+  PlusCircle, 
   ClipboardList, 
-  Users,
-  LogOut
+  LogOut, 
+  DollarSign, 
+  Contact 
 } from 'lucide-react';
-import { menuItems } from '../data/MockData';
+
 
 const Sidebar = () => {
-  const navigate = useNavigate();
   const location = useLocation();
-  
-  // Extract the current page from the URL path
-  const currentPath = location.pathname === '/' ? '/dashboard' : location.pathname;
-  
-  // Map of icon names to actual icon components
-  const iconComponents = {
-    LayoutDashboard: LayoutDashboard,
-    ShieldCheck: ShieldCheck,
-    PlusCircle: PlusCircle,
-    Heart: Heart,
-    ClipboardList: ClipboardList,
-    Users: Users
+ 
+
+  const menuItems = [
+    { 
+      name: 'Dashboard', 
+      icon: <LayoutDashboard className="w-5 h-5" />, 
+      path: '/ngo-panel/dashboard' 
+    },
+    { 
+      name: 'Add Pet', 
+      icon: <PlusCircle className="w-5 h-5" />, 
+      path: '/ngo-panel/add-pet' 
+    },
+    { 
+      name: 'Adoptions', 
+      icon: <Heart className="w-5 h-5" />, 
+      path: '/ngo-panel/adoptions' 
+    },
+    { 
+      name: 'Users', 
+      icon: <Users className="w-5 h-5" />, 
+      path: '/ngo-panel/users' 
+    },
+    { 
+      name: 'Donations', 
+      icon: <DollarSign className="w-5 h-5" />, 
+      path: '/ngo-panel/donations' 
+    },
+    { 
+      name: 'Contact Messages', 
+      icon: <Contact className="w-5 h-5" />, 
+      path: '/ngo-panel/contacts' 
+    }
+  ];
+
+  const handleLogout = () => {
+    logout();
   };
 
   return (
-    <div className="w-60 bg-black text-white flex flex-col">
-      <div className="p-4 border-b border-gray-800">
-        <div className="font-bold text-lg">PETPAL ADMIN</div>
+    <div className="bg-black text-white h-screen w-64 fixed left-0 top-0 overflow-y-auto shadow-lg">
+      <div className="p-5 border-b border-base-300">
+        <h1 className="text-2xl font-bold text-white">PETPAL NGO</h1>
       </div>
-      
-      <nav className="mt-4 flex-grow px-2">
-        {menuItems.map((item) => {
-          const IconComponent = iconComponents[item.icon];
-          return (
-            <button 
-              key={item.name}
-              className={`px-3 py-2 my-1 flex items-center cursor-pointer space-x-3 rounded w-full text-left ${
-                currentPath === item.path 
-                  ? 'bg-white text-black font-medium' 
-                  : 'text-gray-300 hover:bg-gray-800'
-              }`}
-              onClick={() => navigate(item.path)}
-            >
-              <IconComponent className="w-4 h-4" />
-              <span className="text-sm">{item.name}</span>
-            </button>
-          );
-        })}
-      </nav>
-      
-      {/* Profile Section */}
-      <div className="p-4 border-t border-gray-800 mx-2">
-        <div className="flex items-center space-x-2">
-          <div className="bg-white text-black rounded-full w-8 h-8 flex items-center justify-center font-bold">
-            A
-          </div>
-          <div className="flex-grow">
-            <div className="text-sm">Admin</div>
-          </div>
-          <LogOut className="w-4 h-4 text-gray-400 hover:text-white cursor-pointer" />
-        </div>
+
+      <div className="p-4">
+        <ul className="space-y-2">
+          {menuItems.map((item, index) => {
+            const isActive = location.pathname === item.path;
+            
+            return (
+              <li key={index}>
+                <Link
+                  to={item.path}
+                  className={`flex items-center p-3 rounded-lg transition-colors ${
+                    isActive 
+                      ? 'bg-white text-black' 
+                      : 'hover:bg-slate-400'
+                  }`}
+                >
+                  {item.icon}
+                  <span className="ml-3">{item.name}</span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+
+      <div className="absolute bottom-0 left-0 w-full p-4 border-t border-base-300">
+        <button 
+          onClick={handleLogout}
+          className="flex items-center w-full p-3 text-error hover:bg-base-300 rounded-lg transition-colors"
+        >
+          <LogOut className="w-5 h-5" />
+          <span className="ml-3">Logout</span>
+        </button>
       </div>
     </div>
   );

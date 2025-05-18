@@ -1,21 +1,16 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import Sidebar from '../../components/AdminSidebar';
-import Header from '../../components/Header';
+import Sidebar from "../../components/AdminSidebar.jsx"
 
 const AdminLayout = () => {
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Sidebar Component */}
+    <div className="flex min-h-screen bg-white ">
+      {/* Sidebar */}
       <Sidebar />
-
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Header Component */}
-        <Header />
-        
-        {/* Content Area - This is where the Outlet will render the current page */}
-        <main className="flex-1 overflow-auto p-4">
+      
+      {/* Main Content */}
+      <div className="flex-1 ml-64">
+        <main className="p-6">
           <Outlet />
         </main>
       </div>
