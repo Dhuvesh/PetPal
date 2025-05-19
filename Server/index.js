@@ -3,8 +3,9 @@ import dotenv from 'dotenv';
 import http from 'http';
 import AuthRoutes from './routes/auth.route.js';
 import PetRoutes from './routes/pet.route.js';
-import VetRoutes from './routes/vet.route.js'
-import contactRoutes from './routes/contactRoutes.js'
+import VetRoutes from './routes/vet.route.js';
+import contactRoutes from './routes/contactRoutes.js';
+import donationRoutes from "./routes/donationRoutes.js"
 import { connectDB } from './lib/db.js';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
@@ -16,6 +17,10 @@ const PORT = process.env.PORT || 3000;
 const app = express();
 const server = http.createServer(app);
 
+// This is for Stripe webhook - must be raw for signature verification
+app.use('/api/donations/webhook', express.raw({ type: 'application/json' }));
+
+// Regular middleware for other routes
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(cookieParser());
@@ -26,8 +31,9 @@ app.use(cors({
 
 app.use('/api/auth', AuthRoutes);
 app.use('/api/pets', PetRoutes);
-app.use('/api/vet-clinics',VetRoutes)
+app.use('/api/vet-clinics', VetRoutes);
 app.use('/api/contacts', contactRoutes);
+app.use('/api/donations', donationRoutes);
 
 server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);

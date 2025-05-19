@@ -1,4 +1,5 @@
-import { useState } from "react"
+
+import { useState, useEffect } from "react"
 import {
   Heart,
   PawPrint,
@@ -7,18 +8,247 @@ import {
   Check,
   Coffee,
   Home,
-  
   DollarSign,
   Calendar,
-
   Users,
-  
   Facebook,
   Twitter,
   Instagram,
-  Linkedin
+  Linkedin,
+  Mail
 } from "lucide-react"
 import { Link } from "react-router-dom"
+// Stripe imports
+import { loadStripe } from "@stripe/stripe-js"
+import {
+  Elements,
+  CardElement,
+  useStripe,
+  useElements
+} from "@stripe/react-stripe-js"
+
+// Initialize Stripe with your publishable key
+const stripePromise = loadStripe("pk_test_51PrIcxImr0JnGY7OrH0T3yiPBshD3Xy6wIEUyUV8PWdiNqgAqzojVrmfFdVQGr6v58DqzD1mboRl3uV8Uhv8w1dX00TVdQTqG7")
+
+// Payment form component
+const DonationPaymentForm = ({ selectedAmount, isMonthly, selectedFund, formData, onPaymentComplete }) => {
+  const stripe = useStripe()
+  const elements = useElements()
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+  const [clientSecret, setClientSecret] = useState("")
+  const [paymentIntentId, setPaymentIntentId] = useState("")
+
+  // Calculate actual amount based on selection
+  const amount = selectedAmount === "custom" ? formData.customAmount : selectedAmount;
+
+  useEffect(() => {
+    // Only create payment intent if we have a valid amount
+    if (amount && amount > 0) {
+      const createIntent = async () => {
+        try {
+          setLoading(true);
+          console.log("Creating payment intent for:", { amount, selectedFund, isMonthly });
+          
+          const response = await fetch("http://localhost:3000/api/donations/create-payment-intent", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              amount: parseFloat(amount),
+              fundType: selectedFund,
+              isMonthly,
+              currency: "inr"
+            }),
+          });
+
+          const data = await response.json();
+          
+          if (response.ok) {
+            console.log("Payment intent created successfully:", data);
+            setClientSecret(data.clientSecret);
+            setPaymentIntentId(data.paymentIntentId);
+          } else {
+            console.error("Payment intent creation failed:", data);
+            setError(data.message || "An error occurred while creating payment intent");
+          }
+        } catch (err) {
+          console.error("Network error creating payment intent:", err);
+          setError("Network error. Please try again.");
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      createIntent();
+    }
+  }, [amount, selectedFund, isMonthly]);
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    if (!stripe || !elements) {
+      // Stripe.js has not loaded yet
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Handle one-time donation
+      if (!isMonthly) {
+        const result = await stripe.confirmCardPayment(clientSecret, {
+          payment_method: {
+            card: elements.getElement(CardElement),
+            billing_details: {
+              name: `${formData.firstName} ${formData.lastName}`,
+              email: formData.email
+            }
+          }
+        });
+
+        if (result.error) {
+          setError(result.error.message);
+        } else if (result.paymentIntent.status === "succeeded") {
+          // Payment confirmed, now confirm donation on server
+          const donationResponse = await fetch("http://localhost:3000/api/donations/confirm-donation", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              paymentIntentId,
+              firstName: formData.firstName,
+              lastName: formData.lastName,
+              email: formData.email,
+              message: formData.message,
+              fundType: selectedFund
+            }),
+          });
+
+          const donationResult = await donationResponse.json();
+          if (donationResponse.ok) {
+            // The backend will send the email receipt automatically
+            onPaymentComplete({
+              ...donationResult.donation, 
+              receiptSent: donationResult.receiptSent
+            });
+          } else {
+            setError(donationResult.message || "Error confirming donation");
+          }
+        }
+      } else {
+        // Handle subscription/monthly donation
+        const paymentMethod = await stripe.createPaymentMethod({
+          type: "card",
+          card: elements.getElement(CardElement),
+          billing_details: {
+            name: `${formData.firstName} ${formData.lastName}`,
+            email: formData.email
+          }
+        });
+
+        if (paymentMethod.error) {
+          setError(paymentMethod.error.message);
+          return;
+        }
+
+        // Create subscription
+        const subscriptionResponse = await fetch("http://localhost:3000/api/donations/create-subscription", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            paymentMethodId: paymentMethod.paymentMethod.id,
+            amount: parseFloat(amount),
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+            email: formData.email,
+            fundType: selectedFund,
+            message: formData.message
+          }),
+        });
+
+        const subscriptionResult = await subscriptionResponse.json();
+        
+        if (subscriptionResponse.ok) {
+          // Confirm subscription payment
+          const { error: confirmError } = await stripe.confirmCardPayment(subscriptionResult.clientSecret);
+          
+          if (confirmError) {
+            setError(confirmError.message);
+          } else {
+            // The backend will send the email receipt automatically
+            onPaymentComplete({
+              subscriptionId: subscriptionResult.subscriptionId,
+              isMonthly: true,
+              receiptSent: subscriptionResult.receiptSent
+            });
+          }
+        } else {
+          setError(subscriptionResult.message || "Error creating subscription");
+        }
+      }
+    } catch (err) {
+      console.error("Payment error:", err);
+      setError("An unexpected error occurred. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      {error && (
+        <div className="alert alert-error mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          <span>{error}</span>
+        </div>
+      )}
+      
+      <div className="mb-6">
+        <label className="block text-base-content font-medium mb-2">Card Details</label>
+        <div className="border border-base-300 rounded-lg p-4 bg-white">
+          <CardElement 
+            options={{
+              style: {
+                base: {
+                  fontSize: '16px',
+                  color: '#424770',
+                  '::placeholder': {
+                    color: '#aab7c4',
+                  },
+                },
+                invalid: {
+                  color: '#9e2146',
+                },
+              },
+            }}
+          />
+        </div>
+        <p className="text-xs text-base-content/70 mt-2">
+          Secure payment processed by Stripe. Your card information is never stored on our servers.
+        </p>
+      </div>
+
+      <button
+        type="submit"
+        disabled={!stripe || loading || !clientSecret}
+        className={`btn btn-primary btn-lg w-full hover:-translate-y-0.5 transition-transform duration-200 ${loading ? 'loading' : ''}`}
+      >
+        {!loading && <Heart className="mr-2" />}
+        {loading ? 'Processing...' : 
+          isMonthly
+            ? `Donate ₹${amount} Monthly`
+            : `Donate ₹${amount} Now`
+        }
+      </button>
+    </form>
+  );
+};
 
 const DonationPage = () => {
   const [selectedAmount, setSelectedAmount] = useState("50")
@@ -33,6 +263,9 @@ const DonationPage = () => {
     message: ""
   })
   const [faqOpen, setFaqOpen] = useState({})
+  const [paymentStep, setPaymentStep] = useState("details") // "details", "payment", "success"
+  const [donationResult, setDonationResult] = useState(null)
+  const [receiptStatus, setReceiptStatus] = useState(null) // To track email receipt status
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -46,10 +279,16 @@ const DonationPage = () => {
     }
   }
 
-  const handleSubmit = (e) => {
+  const handleDetailsSubmit = (e) => {
     e.preventDefault()
-    // Handle form submission logic here
-    alert("Thank you for your donation! Your support means the world to our furry friends.")
+    setPaymentStep("payment")
+  }
+
+  const handlePaymentComplete = (result) => {
+    setDonationResult(result)
+    // Track if the receipt was successfully sent
+    setReceiptStatus(result.receiptSent)
+    setPaymentStep("success")
   }
 
   const toggleFaq = (id) => {
@@ -59,12 +298,49 @@ const DonationPage = () => {
     })
   }
 
+  // Handle manual resending of receipt if it failed initially
+  const handleResendReceipt = async () => {
+    if (!donationResult || !donationResult._id) return;
+    
+    try {
+      const response = await fetch(`http://localhost:3000/api/donations/${donationResult._id}/resend-receipt`, {
+        method: "POST"
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        setReceiptStatus(true);
+      } else {
+        console.error("Failed to resend receipt:", data);
+      }
+    } catch (error) {
+      console.error("Error resending receipt:", error);
+    }
+  }
+
+  // Helper function to get actual donation amount
+  const getActualAmount = () => {
+    return selectedAmount === "custom" ? formData.customAmount : selectedAmount
+  }
+
+  // Helper function to get fund display name
+  const getFundDisplayName = () => {
+    switch (selectedFund) {
+      case "general": return "Where Most Needed"
+      case "medical": return "Emergency Medical Fund"
+      case "shelter": return "Shelter Support Program"
+      case "rescue": return "Rescue Operations"
+      default: return "Spay & Neuter Program"
+    }
+  }
+
   const recentDonors = [
-    { name: "Sarah J.", amount: "$100", time: "2 hours ago" },
-    { name: "Michael T.", amount: "$50", time: "4 hours ago" },
-    { name: "Anonymous", amount: "$200", time: "Yesterday" },
-    { name: "Emma R.", amount: "$75", time: "Yesterday" },
-    { name: "David K.", amount: "$150", time: "2 days ago" }
+    { name: "Sarah J.", amount: "₹100", time: "2 hours ago" },
+    { name: "Michael T.", amount: "₹50", time: "4 hours ago" },
+    { name: "Anonymous", amount: "₹200", time: "Yesterday" },
+    { name: "Emma R.", amount: "₹75", time: "Yesterday" },
+    { name: "David K.", amount: "₹150", time: "2 days ago" }
   ]
 
   const impactData = [
@@ -122,6 +398,250 @@ const DonationPage = () => {
     }
   ]
 
+  // Render based on the current payment step
+  const renderDonationForm = () => {
+    if (paymentStep === "details") {
+      return (
+        <form onSubmit={handleDetailsSubmit}>
+          {/* Donation Amount */}
+          <div className="mb-8">
+            <label className="block text-base-content font-medium mb-3">Select Donation Amount</label>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+              {["50", "100", "200"].map((amount) => (
+                <button
+                  key={amount}
+                  type="button"
+                  className={`btn ${
+                    selectedAmount === amount ? "btn-primary" : "btn-outline"
+                  } w-full hover:-translate-y-0.5 transition-transform duration-200`}
+                  onClick={() => setSelectedAmount(amount)}
+                >
+                  ₹{amount}
+                </button>
+              ))}
+            </div>
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Custom Amount (₹)</span>
+              </label>
+              <input
+                type="number"
+                name="customAmount"
+                placeholder="Enter amount"
+                className="input input-bordered w-full"
+                value={formData.customAmount}
+                onChange={handleInputChange}
+                onClick={() => setSelectedAmount("custom")}
+              />
+            </div>
+          </div>
+
+          {/* Recurring Donation Toggle */}
+          <div className="form-control mb-8">
+            <label className="label cursor-pointer justify-start gap-4">
+              <input 
+                type="checkbox" 
+                className="toggle toggle-primary" 
+                checked={isMonthly}
+                onChange={() => setIsMonthly(!isMonthly)}
+              />
+              <span className="label-text text-base font-medium">
+                Make this a monthly donation
+              </span>
+            </label>
+            {isMonthly && (
+              <p className="text-sm text-base-content/70 mt-2 ml-14">
+                Your recurring gift provides consistent support for animals in need.
+                You can cancel or change your monthly donation at any time.
+              </p>
+            )}
+          </div>
+
+          {/* Fund Allocation */}
+          <div className="form-control mb-8">
+            <label className="label">
+              <span className="label-text font-medium">Direct My Donation To</span>
+            </label>
+            <select 
+              className="select select-bordered w-full" 
+              value={selectedFund}
+              onChange={(e) => setSelectedFund(e.target.value)}
+            >
+              <option value="general">Where Most Needed</option>
+              <option value="medical">Emergency Medical Fund</option>
+              <option value="shelter">Shelter Support Program</option>
+              <option value="rescue">Rescue Operations</option>
+              <option value="spay">Spay & Neuter Program</option>
+            </select>
+          </div>
+
+          {/* Personal Info */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">First Name</span>
+              </label>
+              <input
+                type="text"
+                name="firstName"
+                placeholder="First Name"
+                className="input input-bordered w-full"
+                value={formData.firstName}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Last Name</span>
+              </label>
+              <input
+                type="text"
+                name="lastName"
+                placeholder="Last Name"
+                className="input input-bordered w-full"
+                value={formData.lastName}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="form-control mb-8">
+            <label className="label">
+              <span className="label-text">Email Address</span>
+            </label>
+            <input
+              type="email"
+              name="email"
+              placeholder="email@example.com"
+              className="input input-bordered w-full"
+              value={formData.email}
+              onChange={handleInputChange}
+              required
+            />
+            <p className="text-xs text-base-content/70 mt-2">
+              Your email is required to send donation receipt and tax information.
+            </p>
+          </div>
+
+          {/* Message */}
+          <div className="form-control mb-8">
+            <label className="label">
+              <span className="label-text">Leave a Message (Optional)</span>
+            </label>
+            <textarea
+              name="message"
+              placeholder="Your message of support"
+              className="textarea textarea-bordered h-24"
+              value={formData.message}
+              onChange={handleInputChange}
+            ></textarea>
+          </div>
+
+          {/* Continue to Payment Button */}
+          <button
+            type="submit"
+            className="btn btn-primary btn-lg w-full hover:-translate-y-0.5 transition-transform duration-200"
+          >
+            <Heart className="mr-2" />
+            Continue to Payment
+          </button>
+        </form>
+      )
+    } else if (paymentStep === "payment") {
+      return (
+        <div>
+          <div className="flex justify-between items-center mb-8">
+            <h3 className="text-xl font-bold">Payment Details</h3>
+            <button 
+              onClick={() => setPaymentStep("details")} 
+              className="btn btn-ghost btn-sm"
+            >
+              ← Back to details
+            </button>
+          </div>
+          
+          <div className="bg-base-200/50 p-4 rounded-lg mb-8">
+            <div className="flex justify-between mb-2">
+              <span>Donation Amount:</span>
+              <span className="font-bold">₹{getActualAmount()}</span>
+            </div>
+            <div className="flex justify-between mb-2">
+              <span>Donation Type:</span>
+              <span>{isMonthly ? "Monthly recurring" : "One-time"}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Fund:</span>
+              <span>{getFundDisplayName()}</span>
+            </div>
+          </div>
+          
+          <Elements stripe={stripePromise}>
+            <DonationPaymentForm 
+              selectedAmount={selectedAmount}
+              isMonthly={isMonthly}
+              selectedFund={selectedFund}
+              formData={formData}
+              onPaymentComplete={handlePaymentComplete}
+            />
+          </Elements>
+        </div>
+      )
+    } else if (paymentStep === "success") {
+      return (
+        <div className="text-center py-8">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-success/20 mb-6">
+            <Check className="w-10 h-10 text-success" />
+          </div>
+          <h2 className="text-2xl font-bold mb-4">Thank You for Your Donation!</h2>
+          <p className="text-lg mb-4">
+            Your {isMonthly ? "monthly" : "one-time"} donation of ₹{getActualAmount()} has been processed successfully.
+          </p>
+          
+          {/* Email Receipt Status */}
+          <div className={`alert ${receiptStatus ? 'alert-success' : 'alert-warning'} mb-6`}>
+            <div className="flex items-center">
+              {receiptStatus ? (
+                <>
+                  <Mail className="h-6 w-6 mr-2" />
+                  <p>A donation receipt has been sent to <strong>{formData.email}</strong></p>
+                </>
+              ) : (
+                <>
+                  <Mail className="h-6 w-6 mr-2" />
+                  <div>
+                    <p>There was an issue sending your receipt.</p>
+                    <button 
+                      className="btn btn-sm btn-outline mt-2"
+                      onClick={handleResendReceipt}
+                    >
+                      Resend Receipt
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+          
+          <p className="mb-8">
+            Your support makes a real difference for animals in need. 
+            {isMonthly && " We'll process your monthly donation on this same date each month."}
+          </p>
+          
+          <div className="flex flex-col gap-4 items-center">
+            <button className="btn btn-primary" onClick={() => window.location.reload()}>
+              Make Another Donation
+            </button>
+            <Link to="/" className="btn btn-outline">
+              Return to Homepage
+            </Link>
+          </div>
+        </div>
+      )
+    }
+  }
+
   return (
     <div className="min-h-screen bg-base-100">
       {/* Hero Section */}
@@ -163,151 +683,7 @@ const DonationPage = () => {
                 <div className="lg:col-span-2">
                   <div className="bg-base-200 rounded-xl shadow-xl p-8">
                     <h2 className="text-2xl font-bold mb-6 text-base-content">Make Your Donation</h2>
-                    <form onSubmit={handleSubmit}>
-                      {/* Donation Amount */}
-                      <div className="mb-8">
-                        <label className="block text-base-content font-medium mb-3">Select Donation Amount</label>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-                          {["25", "50", "100", "200"].map((amount) => (
-                            <button
-                              key={amount}
-                              type="button"
-                              className={`btn ${
-                                selectedAmount === amount ? "btn-primary" : "btn-outline"
-                              } w-full hover:-translate-y-0.5 transition-transform duration-200`}
-                              onClick={() => setSelectedAmount(amount)}
-                            >
-                              ${amount}
-                            </button>
-                          ))}
-                        </div>
-                        <div className="form-control">
-                          <label className="label">
-                            <span className="label-text">Custom Amount ($)</span>
-                          </label>
-                          <input
-                            type="number"
-                            name="customAmount"
-                            placeholder="Enter amount"
-                            className="input input-bordered w-full"
-                            value={formData.customAmount}
-                            onChange={handleInputChange}
-                            onClick={() => setSelectedAmount("custom")}
-                          />
-                        </div>
-                      </div>
-
-                      {/* Recurring Donation Toggle */}
-                      <div className="form-control mb-8">
-                        <label className="label cursor-pointer justify-start gap-4">
-                          <input 
-                            type="checkbox" 
-                            className="toggle toggle-primary" 
-                            checked={isMonthly}
-                            onChange={() => setIsMonthly(!isMonthly)}
-                          />
-                          <span className="label-text text-base font-medium">
-                            Make this a monthly donation
-                          </span>
-                        </label>
-                        {isMonthly && (
-                          <p className="text-sm text-base-content/70 mt-2 ml-14">
-                            Your recurring gift provides consistent support for animals in need.
-                            You can cancel or change your monthly donation at any time.
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Fund Allocation */}
-                      <div className="form-control mb-8">
-                        <label className="label">
-                          <span className="label-text font-medium">Direct My Donation To</span>
-                        </label>
-                        <select 
-                          className="select select-bordered w-full" 
-                          value={selectedFund}
-                          onChange={(e) => setSelectedFund(e.target.value)}
-                        >
-                          <option value="general">Where Most Needed</option>
-                          <option value="medical">Emergency Medical Fund</option>
-                          <option value="shelter">Shelter Support Program</option>
-                          <option value="rescue">Rescue Operations</option>
-                          <option value="spay">Spay & Neuter Program</option>
-                        </select>
-                      </div>
-
-                      {/* Personal Info */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                        <div className="form-control">
-                          <label className="label">
-                            <span className="label-text">First Name</span>
-                          </label>
-                          <input
-                            type="text"
-                            name="firstName"
-                            placeholder="First Name"
-                            className="input input-bordered w-full"
-                            value={formData.firstName}
-                            onChange={handleInputChange}
-                            required
-                          />
-                        </div>
-                        <div className="form-control">
-                          <label className="label">
-                            <span className="label-text">Last Name</span>
-                          </label>
-                          <input
-                            type="text"
-                            name="lastName"
-                            placeholder="Last Name"
-                            className="input input-bordered w-full"
-                            value={formData.lastName}
-                            onChange={handleInputChange}
-                            required
-                          />
-                        </div>
-                      </div>
-
-                      <div className="form-control mb-8">
-                        <label className="label">
-                          <span className="label-text">Email Address</span>
-                        </label>
-                        <input
-                          type="email"
-                          name="email"
-                          placeholder="email@example.com"
-                          className="input input-bordered w-full"
-                          value={formData.email}
-                          onChange={handleInputChange}
-                          required
-                        />
-                      </div>
-
-                      {/* Message */}
-                      <div className="form-control mb-8">
-                        <label className="label">
-                          <span className="label-text">Leave a Message (Optional)</span>
-                        </label>
-                        <textarea
-                          name="message"
-                          placeholder="Your message of support"
-                          className="textarea textarea-bordered h-24"
-                          value={formData.message}
-                          onChange={handleInputChange}
-                        ></textarea>
-                      </div>
-
-                      {/* Submit Button */}
-                      <button
-                        type="submit"
-                        className="btn btn-primary btn-lg w-full hover:-translate-y-0.5 transition-transform duration-200"
-                      >
-                        <Heart className="mr-2" />
-                        {isMonthly
-                          ? `Donate $${selectedAmount === "custom" ? formData.customAmount || "0" : selectedAmount} Monthly`
-                          : `Donate $${selectedAmount === "custom" ? formData.customAmount || "0" : selectedAmount} Now`}
-                      </button>
-                    </form>
+                    {renderDonationForm()}
                   </div>
                 </div>
 

@@ -156,7 +156,7 @@ const ContactPage = () => {
                   <select
                     value={selectedContact.status}
                     onChange={(e) => updateContactStatus(selectedContact._id, e.target.value)}
-                    className="px-3 py-1 border rounded text-sm"
+                    className="px-3 py-1 border rounded text-sm bg-black text-white"
                   >
                     <option value="new">New</option>
                     <option value="inProgress">In Progress</option>
