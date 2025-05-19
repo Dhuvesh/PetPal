@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react"
-import { useParams } from "react-router-dom"
+import { useParams, useNavigate } from "react-router-dom"
 import { Heart, MapPin, Weight, Ruler, ArrowLeft, ArrowRight, PawPrint, Calendar, User, Mail, Phone, Home, MessageCircle } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 
 const PetDetailsPage = () => {
   const { id } = useParams()
+  const navigate = useNavigate()
   const [pet, setPet] = useState(null)
   const [loading, setLoading] = useState(true)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
@@ -43,6 +44,10 @@ const PetDetailsPage = () => {
 
   const prevImage = () => {
     setCurrentImageIndex((prev) => (prev === 0 ? pet.photos.length - 1 : prev - 1))
+  }
+  
+  const handleAdoptClick = () => {
+    navigate(`/adopt/form/${id}`);
   }
 
   return (
@@ -257,7 +262,10 @@ const PetDetailsPage = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.7, duration: 0.5 }}
             >
-              <button className="btn btn-primary btn-lg font-bold py-4 px-8 rounded-full text-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50">
+              <button 
+                onClick={handleAdoptClick}
+                className="btn btn-primary btn-lg font-bold py-4 px-8 rounded-full text-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50"
+              >
                 Adopt {pet.name}
               </button>
             </motion.div>

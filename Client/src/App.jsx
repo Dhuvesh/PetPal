@@ -28,6 +28,7 @@ import AdoptionPage from "./pages/AdminPanel/AdoptionPage";
 import UserManagementPage from "./pages/AdminPanel/UserManagementPage";
 import AdminDonationPage from "./pages/AdminPanel/DonationPage";
 import AdminContactPage from "./pages/AdminPanel/ContactPage";
+import AdoptionFormPage from "./pages/Adoption/AdoptioFormPage";
 
 export default function App() {
   const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
@@ -64,6 +65,7 @@ export default function App() {
         <Route path="/profile" element={authUser ? <ProfilePage /> : <Navigate to="/login" />} />
         <Route path="/adopt" element={<PetAdoptionStore />} />
         <Route path="/adopt/:id" element={<PetDetailsPage />} />
+        <Route path="/adopt/form/:id" element={<AdoptionFormPage />} />
         <Route path="/donate" element={<DonationPage />} />
         <Route path="/rehome" element={<EnhancedPetRehomingForm />} />
         <Route path="/vet-services" element={<VetServicesPage />} />
