@@ -4,6 +4,8 @@ import http from 'http';
 import AuthRoutes from './routes/auth.route.js';
 import PetRoutes from './routes/pet.route.js';
 import VetRoutes from './routes/vet.route.js'
+import donationRoutes from './routes/donationRoutes.js'
+import adoptionRoutes from './routes/adoption.route.js';
 import contactRoutes from './routes/contactRoutes.js'
 import { connectDB } from './lib/db.js';
 import cookieParser from 'cookie-parser';
@@ -33,6 +35,7 @@ app.use('/api/pets', PetRoutes);
 app.use('/api/vet-clinics',VetRoutes)
 app.use('/api/contacts', contactRoutes);
 app.use('/api/donations', donationRoutes);
+app.use('/api/adoptions', adoptionRoutes);
 
 server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);

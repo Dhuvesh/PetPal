@@ -1,20 +1,19 @@
 import { useState, useEffect } from "react";
 import { Eye, Check, X } from "lucide-react";
-import { toast } from "react-hot-toast";
 
 const StatusBadge = ({ status }) => {
   const getStatusStyles = () => {
     switch (status) {
       case "pending":
-        return "bg-yellow-100 text-yellow-800";
+        return "bg-gray-100 text-black border border-black";
       case "approved":
-        return "bg-green-100 text-green-800";
+        return "bg-gray-100 text-black border border-black";
       case "rejected":
-        return "bg-red-100 text-red-800";
+        return "bg-gray-100 text-black border border-black";
       case "withdrawn":
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-100 text-black border border-black";
       default:
-        return "bg-blue-100 text-blue-800";
+        return "bg-gray-100 text-black border border-black";
     }
   };
 
@@ -53,7 +52,7 @@ const AdoptionPage = () => {
       setAdoptions(data);
     } catch (err) {
       setError(err.message);
-      toast.error("Failed to load adoption requests");
+      // Toast would be handled here
     } finally {
       setLoading(false);
     }
@@ -111,10 +110,10 @@ const AdoptionPage = () => {
           : adoption
       ));
       
-      toast.success(`Adoption request ${statusAction} successfully`);
+      // Toast would be handled here
       closeStatusModal();
     } catch (err) {
-      toast.error(err.message);
+      // Toast error would be handled here
     } finally {
       setProcessingStatus(false);
     }
@@ -131,26 +130,26 @@ const AdoptionPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="loader">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-black">Loading...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-red-500">Error: {error}</div>
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-black">Error: {error}</div>
       </div>
     );
   }
 
   return (
-    <div className="bg-base-100 p-6 rounded-lg shadow-lg">
+    <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-200">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-primary">Adoption Applications</h1>
+        <h1 className="text-2xl font-bold text-black">Adoption Applications</h1>
         <button 
-          className="btn btn-sm btn-outline"
+          className="px-3 py-1 text-sm bg-white border border-black text-black rounded hover:bg-gray-50"
           onClick={fetchAdoptions}
         >
           Refresh
@@ -159,38 +158,38 @@ const AdoptionPage = () => {
 
       {adoptions.length === 0 ? (
         <div className="text-center py-10">
-          <p className="text-gray-500">No adoption applications found</p>
+          <p className="text-gray-600">No adoption applications found</p>
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="table w-full">
+          <table className="w-full">
             <thead>
-              <tr>
-                <th>ID</th>
-                <th>Applicant</th>
-                <th>Pet</th>
-                <th>Date</th>
-                <th>Status</th>
-                <th>Actions</th>
+              <tr className="border-b border-black">
+                <th className="text-left p-2 text-black">ID</th>
+                <th className="text-left p-2 text-black">Applicant</th>
+                <th className="text-left p-2 text-black">Pet</th>
+                <th className="text-left p-2 text-black">Date</th>
+                <th className="text-left p-2 text-black">Status</th>
+                <th className="text-left p-2 text-black">Actions</th>
               </tr>
             </thead>
             <tbody>
               {adoptions.map((adoption) => (
-                <tr key={adoption._id} className="hover">
-                  <td className="font-mono">{adoption._id.substring(0, 8)}...</td>
-                  <td>{adoption.fullName}</td>
-                  <td>
+                <tr key={adoption._id} className="hover:bg-gray-50 border-b border-gray-200">
+                  <td className="p-2 font-mono text-black">{adoption._id.substring(0, 8)}...</td>
+                  <td className="p-2 text-black">{adoption.fullName}</td>
+                  <td className="p-2 text-black">
                     {adoption.petId ? (
                       typeof adoption.petId === 'object' ? adoption.petId.name : 'Pet data loading...'
                     ) : 'Unknown Pet'}
                   </td>
-                  <td>{formatDate(adoption.createdAt)}</td>
-                  <td>
+                  <td className="p-2 text-black">{formatDate(adoption.createdAt)}</td>
+                  <td className="p-2">
                     <StatusBadge status={adoption.status} />
                   </td>
-                  <td className="flex space-x-2">
+                  <td className="p-2 flex space-x-2">
                     <button 
-                      className="btn btn-sm btn-ghost text-primary"
+                      className="p-1 rounded text-black hover:bg-gray-100"
                       onClick={() => openViewModal(adoption)}
                     >
                       <Eye size={16} />
@@ -199,13 +198,13 @@ const AdoptionPage = () => {
                     {adoption.status === "pending" && (
                       <>
                         <button 
-                          className="btn btn-sm btn-ghost text-success"
+                          className="p-1 rounded text-black hover:bg-gray-100"
                           onClick={() => openStatusModal(adoption, "approved")}
                         >
                           <Check size={16} />
                         </button>
                         <button 
-                          className="btn btn-sm btn-ghost text-error"
+                          className="p-1 rounded text-black hover:bg-gray-100"
                           onClick={() => openStatusModal(adoption, "rejected")}
                         >
                           <X size={16} />
@@ -222,31 +221,31 @@ const AdoptionPage = () => {
 
       {/* View Modal */}
       {isViewModalOpen && selectedAdoption && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-base-100 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-base-100 p-4 border-b flex justify-between items-center">
-              <h3 className="text-xl font-bold">
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white p-4 border-b border-black flex justify-between items-center">
+              <h3 className="text-xl font-bold text-black">
                 Application from {selectedAdoption.fullName}
               </h3>
-              <button className="btn btn-sm btn-circle" onClick={closeViewModal}>✕</button>
+              <button className="w-8 h-8 rounded-full flex items-center justify-center border border-black hover:bg-gray-100 text-black" onClick={closeViewModal}>✕</button>
             </div>
             
             <div className="p-6 space-y-6">
               {/* Pet Information */}
               {selectedAdoption.petId && typeof selectedAdoption.petId === 'object' && (
-                <div className="bg-base-200 p-4 rounded-lg">
-                  <h4 className="font-semibold mb-2">Applying to adopt:</h4>
+                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                  <h4 className="font-semibold mb-2 text-black">Applying to adopt:</h4>
                   <div className="flex items-center space-x-4">
                     {selectedAdoption.petId.photos && selectedAdoption.petId.photos[0] && (
                       <img 
                         src={selectedAdoption.petId.photos[0]} 
                         alt={selectedAdoption.petId.name}
-                        className="w-16 h-16 rounded-full object-cover"
+                        className="w-16 h-16 rounded-full object-cover border border-black"
                       />
                     )}
                     <div>
-                      <p className="font-bold">{selectedAdoption.petId.name}</p>
-                      <p className="text-sm opacity-75">
+                      <p className="font-bold text-black">{selectedAdoption.petId.name}</p>
+                      <p className="text-sm text-gray-600">
                         {selectedAdoption.petId.breed} • {selectedAdoption.petId.age}
                       </p>
                     </div>
@@ -257,69 +256,69 @@ const AdoptionPage = () => {
               {/* Application Status */}
               <div className="flex justify-between items-center">
                 <div>
-                  <h4 className="font-semibold">Application Status:</h4>
+                  <h4 className="font-semibold text-black">Application Status:</h4>
                   <StatusBadge status={selectedAdoption.status} />
                 </div>
-                <div className="text-sm opacity-75">
+                <div className="text-sm text-gray-600">
                   Submitted on {formatDate(selectedAdoption.createdAt)}
                 </div>
               </div>
               
               {/* Admin Notes if any */}
               {selectedAdoption.adminNotes && (
-                <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
-                  <h4 className="font-semibold text-blue-800">Admin Notes:</h4>
-                  <p className="text-blue-700">{selectedAdoption.adminNotes}</p>
+                <div className="bg-gray-50 border-l-4 border-black p-4 rounded">
+                  <h4 className="font-semibold text-black">Admin Notes:</h4>
+                  <p className="text-black">{selectedAdoption.adminNotes}</p>
                 </div>
               )}
               
               {/* Personal Information */}
               <div>
-                <h4 className="font-semibold border-b pb-2 mb-3">Personal Information</h4>
+                <h4 className="font-semibold border-b border-black pb-2 mb-3 text-black">Personal Information</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm opacity-75">Full Name</p>
-                    <p>{selectedAdoption.fullName}</p>
+                    <p className="text-sm text-gray-600">Full Name</p>
+                    <p className="text-black">{selectedAdoption.fullName}</p>
                   </div>
                   <div>
-                    <p className="text-sm opacity-75">Email</p>
-                    <p>{selectedAdoption.email}</p>
+                    <p className="text-sm text-gray-600">Email</p>
+                    <p className="text-black">{selectedAdoption.email}</p>
                   </div>
                   <div>
-                    <p className="text-sm opacity-75">Phone</p>
-                    <p>{selectedAdoption.phone}</p>
+                    <p className="text-sm text-gray-600">Phone</p>
+                    <p className="text-black">{selectedAdoption.phone}</p>
                   </div>
                   <div>
-                    <p className="text-sm opacity-75">Occupation</p>
-                    <p>{selectedAdoption.occupation}</p>
+                    <p className="text-sm text-gray-600">Occupation</p>
+                    <p className="text-black">{selectedAdoption.occupation}</p>
                   </div>
                 </div>
               </div>
               
               {/* Living Situation */}
               <div>
-                <h4 className="font-semibold border-b pb-2 mb-3">Living Situation</h4>
+                <h4 className="font-semibold border-b border-black pb-2 mb-3 text-black">Living Situation</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="md:col-span-2">
-                    <p className="text-sm opacity-75">Address</p>
-                    <p>{selectedAdoption.address}</p>
+                    <p className="text-sm text-gray-600">Address</p>
+                    <p className="text-black">{selectedAdoption.address}</p>
                   </div>
                   <div>
-                    <p className="text-sm opacity-75">Housing Type</p>
-                    <p className="capitalize">{selectedAdoption.housingType}</p>
+                    <p className="text-sm text-gray-600">Housing Type</p>
+                    <p className="capitalize text-black">{selectedAdoption.housingType}</p>
                   </div>
                   <div>
-                    <p className="text-sm opacity-75">Own or Rent</p>
-                    <p className="capitalize">{selectedAdoption.ownRent}</p>
+                    <p className="text-sm text-gray-600">Own or Rent</p>
+                    <p className="capitalize text-black">{selectedAdoption.ownRent}</p>
                   </div>
                   <div>
-                    <p className="text-sm opacity-75">Has Children</p>
-                    <p className="capitalize">{selectedAdoption.hasChildren}</p>
+                    <p className="text-sm text-gray-600">Has Children</p>
+                    <p className="capitalize text-black">{selectedAdoption.hasChildren}</p>
                   </div>
                   {selectedAdoption.hasChildren === "yes" && (
                     <div>
-                      <p className="text-sm opacity-75">Children's Ages</p>
-                      <p>{selectedAdoption.childrenAges}</p>
+                      <p className="text-sm text-gray-600">Children's Ages</p>
+                      <p className="text-black">{selectedAdoption.childrenAges}</p>
                     </div>
                   )}
                 </div>
@@ -327,48 +326,48 @@ const AdoptionPage = () => {
               
               {/* Pet Experience */}
               <div>
-                <h4 className="font-semibold border-b pb-2 mb-3">Pet Experience</h4>
+                <h4 className="font-semibold border-b border-black pb-2 mb-3 text-black">Pet Experience</h4>
                 <div className="space-y-4">
                   <div>
-                    <p className="text-sm opacity-75">Has Current Pets</p>
-                    <p className="capitalize">{selectedAdoption.hasPets}</p>
+                    <p className="text-sm text-gray-600">Has Current Pets</p>
+                    <p className="capitalize text-black">{selectedAdoption.hasPets}</p>
                   </div>
                   
                   {selectedAdoption.hasPets === "yes" && (
                     <div>
-                      <p className="text-sm opacity-75">Current Pets</p>
-                      <p>{selectedAdoption.currentPets}</p>
+                      <p className="text-sm text-gray-600">Current Pets</p>
+                      <p className="text-black">{selectedAdoption.currentPets}</p>
                     </div>
                   )}
                   
                   <div>
-                    <p className="text-sm opacity-75">Previous Pet Experience</p>
-                    <p>{selectedAdoption.experience}</p>
+                    <p className="text-sm text-gray-600">Previous Pet Experience</p>
+                    <p className="text-black">{selectedAdoption.experience}</p>
                   </div>
                 </div>
               </div>
               
               {/* Adoption Details */}
               <div>
-                <h4 className="font-semibold border-b pb-2 mb-3">Adoption Details</h4>
+                <h4 className="font-semibold border-b border-black pb-2 mb-3 text-black">Adoption Details</h4>
                 <div className="space-y-4">
                   <div>
-                    <p className="text-sm opacity-75">Reason for Adopting</p>
-                    <p>{selectedAdoption.reasonForAdopting}</p>
+                    <p className="text-sm text-gray-600">Reason for Adopting</p>
+                    <p className="text-black">{selectedAdoption.reasonForAdopting}</p>
                   </div>
                   <div>
-                    <p className="text-sm opacity-75">Care Arrangements</p>
-                    <p>{selectedAdoption.careArrangements}</p>
+                    <p className="text-sm text-gray-600">Care Arrangements</p>
+                    <p className="text-black">{selectedAdoption.careArrangements}</p>
                   </div>
                 </div>
               </div>
             </div>
             
-            <div className="sticky bottom-0 bg-base-100 p-4 border-t flex justify-end space-x-2">
+            <div className="sticky bottom-0 bg-white p-4 border-t border-black flex justify-end space-x-2">
               {selectedAdoption.status === "pending" && (
                 <>
                   <button 
-                    className="btn btn-error"
+                    className="px-4 py-2 bg-white border border-black text-black hover:bg-gray-50 rounded"
                     onClick={() => {
                       closeViewModal();
                       openStatusModal(selectedAdoption, "rejected");
@@ -377,7 +376,7 @@ const AdoptionPage = () => {
                     Reject
                   </button>
                   <button 
-                    className="btn btn-success"
+                    className="px-4 py-2 bg-white border border-black text-black hover:bg-gray-50 rounded"
                     onClick={() => {
                       closeViewModal();
                       openStatusModal(selectedAdoption, "approved");
@@ -387,7 +386,7 @@ const AdoptionPage = () => {
                   </button>
                 </>
               )}
-              <button className="btn" onClick={closeViewModal}>Close</button>
+              <button className="px-4 py-2 bg-white border border-black text-black hover:bg-gray-50 rounded" onClick={closeViewModal}>Close</button>
             </div>
           </div>
         </div>
@@ -395,28 +394,28 @@ const AdoptionPage = () => {
 
       {/* Status Update Modal */}
       {isStatusModalOpen && selectedAdoption && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-base-100 rounded-lg shadow-xl max-w-md w-full">
-            <div className="p-4 border-b">
-              <h3 className="text-lg font-bold">
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full border border-gray-200">
+            <div className="p-4 border-b border-black">
+              <h3 className="text-lg font-bold text-black">
                 {statusAction === "approved" ? "Approve" : "Reject"} Application
               </h3>
             </div>
             
             <div className="p-6">
-              <p className="mb-4">
+              <p className="mb-4 text-black">
                 {statusAction === "approved" 
                   ? `Are you sure you want to approve ${selectedAdoption.fullName}'s application?` 
                   : `Are you sure you want to reject ${selectedAdoption.fullName}'s application?`
                 }
               </p>
               
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text">Admin Notes (optional)</span>
+              <div className="mb-4">
+                <label className="block text-black mb-2">
+                  Admin Notes (optional)
                 </label>
                 <textarea 
-                  className="textarea textarea-bordered h-24"
+                  className="w-full p-2 border border-black rounded h-24 bg-white text-black"
                   placeholder="Add any notes about this decision..."
                   value={adminNotes}
                   onChange={(e) => setAdminNotes(e.target.value)}
@@ -424,16 +423,16 @@ const AdoptionPage = () => {
               </div>
             </div>
             
-            <div className="p-4 border-t flex justify-end space-x-2">
+            <div className="p-4 border-t border-black flex justify-end space-x-2">
               <button 
-                className="btn btn-ghost"
+                className="px-4 py-2 bg-white text-black border border-black rounded hover:bg-gray-50"
                 onClick={closeStatusModal}
                 disabled={processingStatus}
               >
                 Cancel
               </button>
               <button 
-                className={`btn ${statusAction === "approved" ? "btn-success" : "btn-error"}`}
+                className="px-4 py-2 bg-white text-black border border-black rounded hover:bg-gray-50"
                 onClick={updateAdoptionStatus}
                 disabled={processingStatus}
               >
