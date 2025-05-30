@@ -1,334 +1,260 @@
-import { useState, useEffect } from 'react';
-import { useAuthStore } from '../store/UseAuthStore';
-import axios from 'axios';
-import { Link } from 'react-router-dom';
-import { Shield, Phone, Mail, Home, AlertCircle, Check, UserCheck } from 'lucide-react';
+"use client"
 
-const MyApplications = () => {
-  const { authUser } = useAuthStore();
-  const [applications, setApplications] = useState([]); // Ensure it's initialized as an empty array
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [selectedApplication, setSelectedApplication] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+import { useState, useEffect } from "react"
+import { CheckCircle, XCircle, Clock, AlertCircle, Search } from "lucide-react"
+
+const AdoptionStatusTracker = () => {
+  const [adoptions, setAdoptions] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [statusFilter, setStatusFilter] = useState("")
+  const [searchQuery, setSearchQuery] = useState("")
+  const limit = 5
 
   useEffect(() => {
-    const fetchApplications = async () => {
-      if (!authUser) return;
-      
-      try {
-        setLoading(true);
-        // Use the dedicated endpoint for user applications
-        const response = await axios.get(`/api/adoptions/user-applications?email=${authUser.email}`);
-        
-        // Ensure the response data is an array before setting the state
-        const applicationsData = Array.isArray(response.data) ? response.data : [];
-        setApplications(applicationsData);
-        setLoading(false);
-      } catch (err) {
-        console.error('Error fetching applications:', err);
-        setError('Failed to load your applications. Please try again later.');
-        setLoading(false);
+    fetchAdoptions()
+  }, [page, statusFilter, searchQuery])
+
+  const fetchAdoptions = async () => {
+    try {
+      setLoading(true)
+
+      // Build query parameters
+      const queryParams = new URLSearchParams({
+        page,
+        limit,
+        ...(statusFilter && { status: statusFilter }),
+        ...(searchQuery && { search: searchQuery }),
+      })
+
+      const response = await fetch(`http://localhost:3000/api/adoptions/get-requests?${queryParams}`)
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch adoption requests")
       }
-    };
 
-    fetchApplications();
-  }, [authUser]);
+      const data = await response.json()
+      setAdoptions(data)
 
-  const getStatusBadgeClass = (status) => {
-    switch (status) {
-      case 'approved':
-        return 'bg-green-100 text-green-800';
-      case 'rejected':
-        return 'bg-red-100 text-red-800';
-      case 'withdrawn':
-        return 'bg-gray-100 text-gray-800';
-      default: // pending
-        return 'bg-yellow-100 text-yellow-800';
+      // Get total count from headers or calculate pages
+      const totalCount = Number.parseInt(response.headers.get("X-Total-Count") || "0")
+      setTotalPages(Math.ceil(totalCount / limit) || 1)
+
+      setError(null)
+    } catch (err) {
+      console.error("Error fetching adoption requests:", err)
+      setError("Failed to load adoption requests. Please try again later.")
+    } finally {
+      setLoading(false)
     }
-  };
-
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
-  const openOwnerInfoModal = (application) => {
-    setSelectedApplication(application);
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setSelectedApplication(null);
-    setIsModalOpen(false);
-  };
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-      </div>
-    );
   }
 
-  if (error) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-4">
-        <div className="bg-red-100 text-red-700 p-4 rounded-lg">
-          <p>{error}</p>
-        </div>
-        <button 
-          onClick={() => window.location.reload()}
-          className="mt-4 btn btn-primary"
-        >
-          Try Again
-        </button>
-      </div>
-    );
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case "approved":
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+            <CheckCircle className="w-4 h-4 mr-1" /> Approved
+          </span>
+        )
+      case "rejected":
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+            <XCircle className="w-4 h-4 mr-1" /> Rejected
+          </span>
+        )
+      case "withdrawn":
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+            <AlertCircle className="w-4 h-4 mr-1" /> Withdrawn
+          </span>
+        )
+      default:
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+            <Clock className="w-4 h-4 mr-1" /> Pending
+          </span>
+        )
+    }
   }
 
-  // Debug check - log the applications type and content
-  console.log('Applications type:', typeof applications);
-  console.log('Is applications an array?', Array.isArray(applications));
-  console.log('Applications content:', applications);
+  const handlePageChange = (newPage) => {
+    setPage(newPage)
+  }
 
-  // Ensure applications is an array before rendering
-  const applicationsArray = Array.isArray(applications) ? applications : [];
+  const handleStatusFilterChange = (e) => {
+    setStatusFilter(e.target.value)
+    setPage(1) // Reset to first page when filter changes
+  }
+
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value)
+  }
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault()
+    setPage(1) // Reset to first page when search changes
+  }
 
   return (
-    <div className="container mx-auto px-4 pt-24 pb-12">
-      <h1 className="text-2xl font-bold mb-6">My Adoption Applications</h1>
-      
-      {applicationsArray.length === 0 ? (
-        <div className="text-center py-8">
-          <p className="text-lg mb-4">You haven't submitted any adoption applications yet.</p>
-          <Link to="/adopt" className="btn btn-primary">
-            Browse Pets for Adoption
-          </Link>
+    <div className="container mx-auto py-8 px-4">
+      <div className="bg-white rounded-lg shadow-md overflow-hidden w-full">
+        {/* Header */}
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h2 className="text-2xl font-bold text-gray-800">My Adoption Requests</h2>
+          <p className="text-sm text-gray-500 mt-1">Track the status of your pet adoption applications</p>
         </div>
-      ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {applicationsArray.map((application) => (
-            <div key={application._id} className="bg-base-100 border border-base-300 rounded-lg overflow-hidden shadow-sm">
-              <div className="p-4">
-                <div className="flex justify-between items-start mb-3">
-                  <h2 className="text-xl font-semibold">
-                    {application.petId?.name || "Pet"}
-                  </h2>
-                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeClass(application.status)}`}>
-                    {application.status.charAt(0).toUpperCase() + application.status.slice(1)}
-                  </span>
-                </div>
-                
-                <p className="text-sm mb-3">
-                  <span className="font-medium">Submitted:</span> {formatDate(application.createdAt)}
-                </p>
-                
-                {application.updatedAt !== application.createdAt && (
-                  <p className="text-sm mb-3">
-                    <span className="font-medium">Last Updated:</span> {formatDate(application.updatedAt)}
-                  </p>
-                )}
 
-                {/* Pet Information */}
-                {application.petId && (
-                  <div className="border-t border-base-300 pt-3 mt-3">
-                    <div className="flex gap-3">
-                      {application.petId.photos && application.petId.photos.length > 0 ? (
-                        <img 
-                          src={application.petId.photos[0]} 
-                          alt={application.petId.name}
-                          className="w-20 h-20 object-cover rounded-lg"
-                        />
-                      ) : (
-                        <div className="w-20 h-20 bg-base-200 rounded-lg flex items-center justify-center">
-                          <span className="text-xs text-base-content/60">No image</span>
-                        </div>
-                      )}
-                      <div>
-                        <p className="text-sm"><span className="font-medium">Breed:</span> {application.petId.breed}</p>
-                        <p className="text-sm"><span className="font-medium">Age:</span> {application.petId.age}</p>
-                        <p className="text-sm"><span className="font-medium">Gender:</span> {application.petId.gender}</p>
-                        <p className="text-sm"><span className="font-medium">Location:</span> {application.petId.location}</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Status-specific messages */}
-                {application.status === 'pending' && (
-                  <div className="mt-4 pt-3 border-t border-base-300">
-                    <p className="text-sm flex items-center gap-2 text-yellow-600 bg-yellow-50 p-3 rounded-md border border-yellow-100">
-                      <AlertCircle size={16} />
-                      Your application is currently under review. We'll notify you when there's an update.
-                    </p>
-                  </div>
-                )}
-                
-                {application.status === 'rejected' && (
-                  <div className="mt-4 pt-3 border-t border-base-300">
-                    <p className="text-sm flex items-center gap-2 text-red-600 bg-red-50 p-3 rounded-md border border-red-100">
-                      <AlertCircle size={16} />
-                      Unfortunately, your application wasn't approved at this time. Please check any admin notes for more details.
-                    </p>
-                  </div>
-                )}
-                
-                {application.status === 'withdrawn' && (
-                  <div className="mt-4 pt-3 border-t border-base-300">
-                    <p className="text-sm flex items-center gap-2 text-gray-600 bg-gray-50 p-3 rounded-md border border-gray-100">
-                      <AlertCircle size={16} />
-                      This application has been withdrawn. You can submit a new application if you're interested in adopting again.
-                    </p>
-                  </div>
-                )}
-
-                {/* Approved application notification */}
-                {application.status === 'approved' && (
-                  <div className="mt-4 pt-3 border-t border-base-300">
-                    <div className="bg-green-50 p-3 rounded-md border border-green-100">
-                      <p className="text-sm flex items-center gap-2 text-green-700 font-medium mb-2">
-                        <Check size={16} />
-                        Congratulations! Your application has been approved.
-                      </p>
-                      <p className="text-sm text-green-700">
-                        You can now view the owner's contact information and arrange the adoption.
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Admin Notes (if any) */}
-                {application.adminNotes && (
-                  <div className="mt-4 pt-3 border-t border-base-300">
-                    <h3 className="font-semibold text-sm mb-2">Additional Notes</h3>
-                    <p className="text-sm italic">{application.adminNotes}</p>
-                  </div>
-                )}
-
-                {/* Action Buttons */}
-                <div className="mt-4 flex gap-2">
-                  <Link
-                    to={`/pet/${application.petId?._id}`}
-                    className="btn btn-outline btn-sm flex-1"
-                  >
-                    View Pet Details
-                  </Link>
-                  
-                  {application.status === 'pending' && (
-                    <button
-                      onClick={() => {
-                        if (window.confirm('Are you sure you want to withdraw this application?')) {
-                          // Implement withdrawal logic here
-                          alert('This feature will be implemented soon.');
-                        }
-                      }}
-                      className="btn btn-error btn-sm btn-outline flex-1"
-                    >
-                      Withdraw
-                    </button>
-                  )}
-                  
-                  {application.status === 'approved' && (
-                    <button
-                      onClick={() => openOwnerInfoModal(application)}
-                      className="btn btn-primary btn-sm flex-1 flex items-center gap-1"
-                    >
-                      <UserCheck size={16} />
-                      Contact Owner
-                    </button>
-                  )}
-                </div>
-              </div>
+        {/* Filters */}
+        <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <form onSubmit={handleSearchSubmit} className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                <input
+                  type="text"
+                  placeholder="Search by pet name..."
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </form>
             </div>
-          ))}
-        </div>
-      )}
-
-      {/* Owner Information Modal */}
-      {isModalOpen && selectedApplication && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
-            <div className="p-4 border-b">
-              <h3 className="text-lg font-semibold flex items-center gap-2">
-                <Shield size={20} className="text-green-600" /> 
-                Owner Contact Information
-              </h3>
-            </div>
-            
-            <div className="p-6">
-              {selectedApplication.petId?.owner ? (
-                <div className="space-y-4">
-                  <p className="text-lg font-medium mb-2">
-                    Contact details for {selectedApplication.petId.name}'s owner:
-                  </p>
-                  
-                  <div className="flex items-center gap-3">
-                    <UserCheck size={20} className="text-gray-500" />
-                    <div>
-                      <p className="font-medium">{selectedApplication.petId.owner.fullName}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-3">
-                    <Mail size={20} className="text-gray-500" />
-                    <div>
-                      <p>{selectedApplication.petId.owner.email}</p>
-                      <p className="text-xs text-gray-500">Email</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-3">
-                    <Phone size={20} className="text-gray-500" />
-                    <div>
-                      <p>{selectedApplication.petId.owner.phone}</p>
-                      <p className="text-xs text-gray-500">Phone</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start gap-3">
-                    <Home size={20} className="text-gray-500 mt-1" />
-                    <div>
-                      <p>{selectedApplication.petId.owner.address}</p>
-                      <p className="text-xs text-gray-500">Address</p>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-blue-50 p-3 rounded-md text-sm mt-4">
-                    <p className="font-medium text-blue-700 mb-1">Next steps:</p>
-                    <ol className="list-decimal list-inside text-blue-700 space-y-1">
-                      <li>Contact the owner using the information above</li>
-                      <li>Arrange a meeting to see the pet again if needed</li>
-                      <li>Discuss the adoption process and any requirements</li>
-                      <li>Finalize the adoption details</li>
-                    </ol>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center py-6">
-                  <p className="text-red-600">
-                    Owner information is not available. Please contact the shelter for assistance.
-                  </p>
-                </div>
-              )}
-            </div>
-            
-            <div className="p-4 border-t flex justify-end">
-              <button 
-                onClick={closeModal}
-                className="btn btn-primary"
+            <div className="w-full md:w-48">
+              <select
+                value={statusFilter}
+                onChange={handleStatusFilterChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
-                Close
-              </button>
+                <option value="">All Statuses</option>
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+                <option value="withdrawn">Withdrawn</option>
+              </select>
             </div>
           </div>
         </div>
-      )}
-    </div>
-  );
-};
 
-export default MyApplications;
+        {/* Content */}
+        <div className="px-6 py-4">
+          {loading ? (
+            // Loading skeleton
+            Array(3)
+              .fill()
+              .map((_, i) => (
+                <div key={i} className="mb-4 p-4 border rounded-lg animate-pulse">
+                  <div className="flex flex-col md:flex-row justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="h-6 w-48 bg-gray-200 rounded mb-2"></div>
+                      <div className="h-4 w-32 bg-gray-200 rounded mb-1"></div>
+                      <div className="h-4 w-64 bg-gray-200 rounded"></div>
+                    </div>
+                    <div className="flex items-start">
+                      <div className="h-8 w-24 bg-gray-200 rounded"></div>
+                    </div>
+                  </div>
+                </div>
+              ))
+          ) : error ? (
+            <div className="text-center py-8">
+              <AlertCircle className="mx-auto h-12 w-12 text-red-500 mb-4" />
+              <p className="text-gray-600">{error}</p>
+              <button
+                onClick={fetchAdoptions}
+                className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              >
+                Try Again
+              </button>
+            </div>
+          ) : adoptions.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="mx-auto h-24 w-24 text-gray-300 mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium text-gray-900">No adoption requests found</h3>
+              <p className="mt-1 text-gray-500">
+                {statusFilter
+                  ? `You don't have any ${statusFilter} adoption requests.`
+                  : "You haven't submitted any adoption requests yet."}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {adoptions.map((adoption) => (
+                <div
+                  key={adoption._id}
+                  className="p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow"
+                >
+                  <div className="flex flex-col md:flex-row justify-between gap-4">
+                    <div>
+                      <h3 className="font-medium text-lg text-gray-900">
+                        {adoption.petId?.name || "Pet"} Adoption Request
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        Submitted on {new Date(adoption.createdAt).toLocaleDateString()}
+                      </p>
+                      {adoption.adminNotes && (
+                        <p className="mt-2 text-sm bg-gray-50 p-2 rounded border text-gray-700">
+                          <span className="font-medium">Admin Notes:</span> {adoption.adminNotes}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex items-start">{getStatusBadge(adoption.status)}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Footer with pagination */}
+        {!loading && !error && adoptions.length > 0 && (
+          <div className="px-6 py-4 border-t border-gray-200 flex justify-between items-center bg-gray-50">
+            <p className="text-sm text-gray-500">
+              Showing {adoptions.length} of {totalPages * limit} results
+            </p>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => handlePageChange(page - 1)}
+                disabled={page === 1}
+                className={`px-3 py-1 rounded-md text-sm font-medium ${
+                  page === 1
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                }`}
+              >
+                Previous
+              </button>
+              <span className="text-sm text-gray-700">
+                Page {page} of {totalPages}
+              </span>
+              <button
+                onClick={() => handlePageChange(page + 1)}
+                disabled={page === totalPages}
+                className={`px-3 py-1 rounded-md text-sm font-medium ${
+                  page === totalPages
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                }`}
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+export default AdoptionStatusTracker

@@ -29,6 +29,7 @@ import UserManagementPage from "./pages/AdminPanel/UserManagementPage";
 import AdminDonationPage from "./pages/AdminPanel/DonationPage";
 import AdminContactPage from "./pages/AdminPanel/ContactPage";
 import AdoptionFormPage from "./pages/Adoption/AdoptioFormPage";
+import MyAdoptionsPage from "./pages/Adoption/Status";
 
 export default function App() {
   const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
@@ -69,6 +70,7 @@ export default function App() {
         <Route path="/donate" element={<DonationPage />} />
         <Route path="/rehome" element={<EnhancedPetRehomingForm />} />
         <Route path="/vet-services" element={<VetServicesPage />} />
+        <Route path="/my-applications" element={<MyAdoptionsPage />} />
         
         {/* NGO Panel Routes - Nested under AdminLayout */}
         <Route path="/ngo-panel" element={<AdminLayout />}>
