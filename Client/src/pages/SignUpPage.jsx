@@ -31,7 +31,7 @@ const SignUpPage = () => {
       switch(formData.userType) {
         case 'user':
           signup(formData);
-          navigate('/user-dashboard');
+          navigate('/');
           break;
         case 'ngo':
           signup(formData);

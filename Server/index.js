@@ -7,9 +7,11 @@ import VetRoutes from './routes/vet.route.js'
 import donationRoutes from './routes/donationRoutes.js'
 import adoptionRoutes from './routes/adoption.route.js';
 import contactRoutes from './routes/contactRoutes.js'
+import ChatRoutes from './routes/chat.route.js';
 import { connectDB } from './lib/db.js';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
+import { Chat } from './models/chat.model.js';
 
 dotenv.config();
 
@@ -36,6 +38,7 @@ app.use('/api/vet-clinics',VetRoutes)
 app.use('/api/contacts', contactRoutes);
 app.use('/api/donations', donationRoutes);
 app.use('/api/adoptions', adoptionRoutes);
+app.use('/api/chat', ChatRoutes);
 
 server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
