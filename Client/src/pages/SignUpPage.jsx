@@ -45,6 +45,7 @@ const SignUpPage = () => {
     return true;
   };
 
+<<<<<<< HEAD
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -52,6 +53,23 @@ const SignUpPage = () => {
       if (!file.type.startsWith('image/')) {
         toast.error("Please upload an image file");
         return;
+=======
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const success = validateForm();
+    if (success) {
+      switch(formData.userType) {
+        case 'user':
+          signup(formData);
+          navigate('/');
+          break;
+        case 'ngo':
+          signup(formData);
+          navigate('/ngo-dashboard');
+          break;
+        default:
+          toast.error("Invalid user type");
+>>>>>>> 248ef55cf21ba3bc4e6e78900a0c589282a7227f
       }
       // Validate file size (5MB limit)
       if (file.size > 5 * 1024 * 1024) {

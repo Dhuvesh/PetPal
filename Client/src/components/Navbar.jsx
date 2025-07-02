@@ -1,6 +1,6 @@
   import { Link } from "react-router-dom";
   import { useAuthStore } from "../store/UseAuthStore";
-  import { LogOut, PawPrint, Settings, User, ChevronDown } from "lucide-react";
+  import { LogOut, PawPrint, Settings, User, ChevronDown, UserIcon } from "lucide-react";
   import { useState, useRef, useEffect } from "react";
 
   const Navbar = () => {
@@ -97,6 +97,14 @@
                     >
                       <User className="w-4 h-4" />
                       Profile
+                    </Link>
+                    <Link
+                      to="/my-applications"
+                      className="flex items-center gap-2 px-4 py-2 hover:bg-base-300 transition-colors"
+                      onClick={() => setIsDropdownOpen(false)}
+                    >
+                      <UserIcon className="w-4 h-4" />
+                      My Applications
                     </Link>
                     <Link
                       to="/settings"

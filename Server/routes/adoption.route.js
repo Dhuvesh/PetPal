@@ -3,8 +3,10 @@ import {
   submitAdoptionRequest,
   getAdoptionRequests,
   getAdoptionById,
-  updateAdoptionStatus,
-  getAdoptionStats
+  getAdoptionStats,
+  getUserAdoptionRequests,
+  withdrawAdoptionRequest,
+  updateAdoptionStatusWithChat
 } from "../controllers/adoption.controller.js";
 // import { validateToken, isAdmin } from "../middleware/auth.middleware.js"; // Uncomment when auth is implemented
 
@@ -19,11 +21,25 @@ router.post("/submit-request", submitAdoptionRequest);
 
 /**
  * @route GET /api/adoptions/get-requests
- * @description Get all adoption requests (with optional filters)
+ * @description Get all adoption requests (with optional filters) - ADMIN ONLY
  * @access Admin
  */
 // router.get("/get-requests", validateToken, isAdmin, getAdoptionRequests); // With auth middleware
 router.get("/get-requests", getAdoptionRequests); // Without auth middleware for now
+
+/**
+ * @route GET /api/adoptions/get-user-requests
+ * @description Get adoption requests for a specific user
+ * @access User (authenticated)
+ */
+router.get("/get-user-requests", getUserAdoptionRequests);
+
+/**
+ * @route PUT /api/adoptions/withdraw-request/:id
+ * @description Allow user to withdraw their own adoption request
+ * @access User (authenticated)
+ */
+router.put("/withdraw-request/:id", withdrawAdoptionRequest);
 
 /**
  * @route GET /api/adoptions/stats
@@ -47,6 +63,6 @@ router.get("/get-request/:id", getAdoptionById); // Without auth middleware for 
  * @access Admin
  */
 // router.put("/update-status/:id", validateToken, isAdmin, updateAdoptionStatus); // With auth middleware
-router.put("/update-status/:id", updateAdoptionStatus); // Without auth middleware for now
+router.put("/update-status/:id", updateAdoptionStatusWithChat); // Without auth middleware for now
 
 export default router;
