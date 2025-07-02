@@ -9,39 +9,190 @@ const SignUpPage = () => {
   const { signup, isSigningUp } = useAuthStore();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    fullName: '',
+    // Common fields
     email: '',
     password: '',
     userType: 'user', // Default user type
+    
+    // Individual user fields
+    fullName: '',
+    
+    // NGO specific fields
+    ngoName: '',
+    personName: '',
+    phoneNumber: '',
+    idCardPhoto: null,
   });
 
   const validateForm = () => {
-    if (!formData.fullName.trim()) return toast.error("Full name is required");
+    // Common validations
     if (!formData.email.trim()) return toast.error("Email is required");
     if (!/^\S+@\S+\.\S+$/.test(formData.email)) return toast.error("Invalid email format");
     if (!formData.password.trim()) return toast.error("Password is required");
     if (formData.password.length < 6) return toast.error("Password must be at least 6 characters long");
+
+    // User type specific validations
+    if (formData.userType === 'user') {
+      if (!formData.fullName.trim()) return toast.error("Full name is required");
+    } else if (formData.userType === 'ngo') {
+      if (!formData.ngoName.trim()) return toast.error("NGO name is required");
+      if (!formData.personName.trim()) return toast.error("Person name is required");
+      if (!formData.phoneNumber.trim()) return toast.error("Phone number is required");
+      if (!/^\+?[\d\s\-\(\)]{10,}$/.test(formData.phoneNumber)) return toast.error("Invalid phone number format");
+      if (!formData.idCardPhoto) return toast.error("Valid ID card photo is required");
+    }
+
     return true;
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const success = validateForm();
-    if (success) {
-      switch(formData.userType) {
-        case 'user':
-          signup(formData);
-          navigate('/user-dashboard');
-          break;
-        case 'ngo':
-          signup(formData);
-          navigate('/ngo-dashboard');
-          break;
-        default:
-          toast.error("Invalid user type");
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast.error("Please upload an image file");
+        return;
       }
+      // Validate file size (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("File size should be less than 5MB");
+        return;
+      }
+      setFormData({ ...formData, idCardPhoto: file });
     }
   };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!validateForm()) return;
+    
+    try {
+      const userData = await signup(formData);
+      
+      // Navigate based on user type and verification status
+      if (formData.userType === 'user') {
+        navigate('/');
+      } else if (formData.userType === 'ngo') {
+        // For NGO users, navigate to dashboard regardless of verification status
+        // They can see their verification status there
+        navigate('/login');
+      }
+    } catch (error) {
+      // Error handling is done in the store
+      console.error('Signup error:', error);
+    }
+  };
+
+  const renderUserForm = () => (
+    <>
+      {/* Full Name Input */}
+      <div className="form-control">
+        <label className="label">
+          <span className="label-text font-medium">Full Name</span>
+        </label>
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Enter your full name"
+            value={formData.fullName}
+            onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+            className="input input-primary w-full pl-10"
+          />
+          <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+            <LucideIcons.User className="h-5 w-5 text-base-content/50" />
+          </div>
+        </div>
+      </div>
+    </>
+  );
+
+  const renderNGOForm = () => (
+    <>
+      {/* NGO Name Input */}
+      <div className="form-control">
+        <label className="label">
+          <span className="label-text font-medium">NGO Name</span>
+        </label>
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Enter NGO name"
+            value={formData.ngoName}
+            onChange={(e) => setFormData({ ...formData, ngoName: e.target.value })}
+            className="input input-primary w-full pl-10"
+          />
+          <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+            <LucideIcons.Building className="h-5 w-5 text-base-content/50" />
+          </div>
+        </div>
+      </div>
+
+      {/* Person Name Input */}
+      <div className="form-control">
+        <label className="label">
+          <span className="label-text font-medium">Representative Name</span>
+        </label>
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Enter your name"
+            value={formData.personName}
+            onChange={(e) => setFormData({ ...formData, personName: e.target.value })}
+            className="input input-primary w-full pl-10"
+          />
+          <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+            <LucideIcons.User className="h-5 w-5 text-base-content/50" />
+          </div>
+        </div>
+      </div>
+
+      {/* Phone Number Input */}
+      <div className="form-control">
+        <label className="label">
+          <span className="label-text font-medium">Phone Number</span>
+        </label>
+        <div className="relative">
+          <input
+            type="tel"
+            placeholder="Enter phone number"
+            value={formData.phoneNumber}
+            onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
+            className="input input-primary w-full pl-10"
+          />
+          <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+            <LucideIcons.Phone className="h-5 w-5 text-base-content/50" />
+          </div>
+        </div>
+      </div>
+
+      {/* ID Card Photo Upload */}
+      <div className="form-control">
+        <label className="label">
+          <span className="label-text font-medium">Valid ID Card Photo</span>
+        </label>
+        <div className="relative">
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleFileUpload}
+            className="file-input file-input-primary w-full"
+          />
+          {formData.idCardPhoto && (
+            <div className="mt-2 flex items-center space-x-2 text-sm text-success">
+              <LucideIcons.CheckCircle className="h-4 w-4" />
+              <span>{formData.idCardPhoto.name}</span>
+            </div>
+          )}
+        </div>
+        <label className="label">
+          <span className="label-text-alt text-base-content/60">
+            Upload a clear photo of your valid ID card (Max 5MB)
+          </span>
+        </label>
+      </div>
+    </>
+  );
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-base-100 overflow-hidden relative">
@@ -83,8 +234,8 @@ const SignUpPage = () => {
         <div className="bg-base-200 flex items-center justify-center p-12">
           <div className="w-full max-w-md space-y-6">
             <div className="text-center">
-              <h2 className="text-3xl font-bold text-base-content mb-2">Create Account</h2>
-              <p className="text-base-content/70">Sign up to start your mission</p>
+              <h2 className="text-3xl font-bold text-base-content mb-2 mt-6">Create Account</h2>
+              
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -95,32 +246,26 @@ const SignUpPage = () => {
                 </label>
                 <select
                   value={formData.userType}
-                  onChange={(e) => setFormData({ ...formData, userType: e.target.value })}
+                  onChange={(e) => setFormData({ 
+                    ...formData, 
+                    userType: e.target.value,
+                    // Reset form fields when switching user types
+                    fullName: '',
+                    ngoName: '',
+                    personName: '',
+                    phoneNumber: '',
+                    idCardPhoto: null
+                  })}
                   className="select select-primary w-full"
+                  disabled={isSigningUp}
                 >
                   <option value="user">Individual User</option>
                   <option value="ngo">NGO Representative</option>
                 </select>
               </div>
 
-              {/* Full Name Input */}
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text font-medium">Full Name</span>
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Enter your full name"
-                    value={formData.fullName}
-                    onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                    className="input input-primary w-full pl-10"
-                  />
-                  <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                    <LucideIcons.User className="h-5 w-5 text-base-content/50" />
-                  </div>
-                </div>
-              </div>
+              {/* Dynamic Form Fields */}
+              {formData.userType === 'user' ? renderUserForm() : renderNGOForm()}
 
               {/* Email Input */}
               <div className="form-control">
@@ -134,6 +279,7 @@ const SignUpPage = () => {
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className="input input-primary w-full pl-10"
+                    disabled={isSigningUp}
                   />
                   <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
                     <LucideIcons.Mail className="h-5 w-5 text-base-content/50" />
@@ -153,6 +299,7 @@ const SignUpPage = () => {
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                     className="input input-primary w-full pl-10 pr-10"
+                    disabled={isSigningUp}
                   />
                   <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
                     <LucideIcons.Lock className="h-5 w-5 text-base-content/50" />
@@ -161,6 +308,7 @@ const SignUpPage = () => {
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute inset-y-0 right-3 flex items-center"
+                    disabled={isSigningUp}
                   >
                     {showPassword ? (
                       <LucideIcons.EyeOff className="h-5 w-5 text-base-content/50 hover:text-base-content" />
@@ -180,13 +328,15 @@ const SignUpPage = () => {
                 {isSigningUp ? (
                   <>
                     <LucideIcons.Loader2 className="h-5 w-5 animate-spin mr-2" />
-                    Creating Account...
+                    {formData.userType === 'ngo' ? 'Registering NGO...' : 'Creating Account...'}
                   </>
                 ) : (
-                  "Create Account"
+                  formData.userType === 'ngo' ? "Register NGO" : "Create Account"
                 )}
               </button>
             </form>
+
+           
 
             {/* Login Link */}
             <div className="text-center mt-4">

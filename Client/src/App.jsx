@@ -25,11 +25,26 @@ import Navbar from "./components/Navbar";
 import AdminLayout from "./pages/AdminPanel/AdminLayout";
 import Dashboard from "./pages/AdminPanel/AdminDashboard";
 import AdoptionPage from "./pages/AdminPanel/AdoptionPage";
-import UserManagementPage from "./pages/AdminPanel/UserManagementPage";
 import AdminDonationPage from "./pages/AdminPanel/DonationPage";
 import AdminContactPage from "./pages/AdminPanel/ContactPage";
 import AdoptionFormPage from "./pages/Adoption/AdoptioFormPage";
 import MyAdoptionsPage from "./pages/Adoption/Status";
+
+// Protected Route Component for NGO Panel
+const ProtectedNGORoute = ({ children }) => {
+  const { authUser } = useAuthStore();
+  
+  if (!authUser) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  // Check if user is NGO type
+  if (authUser.userType !== 'ngo') {
+    return <Navigate to="/" replace />;
+  }
+  
+  return children;
+};
 
 export default function App() {
   const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
@@ -58,28 +73,56 @@ export default function App() {
       
       <Routes>
         {/* Main Routes */}
-        <Route path="/" element={authUser ? <LandingPage /> : <Navigate to="/login" />} />
-        <Route path="/signup" element={!authUser ? <SignUpPage /> : <Navigate to="/" />} />
-        <Route path="/login" element={!authUser ? <LoginPage /> : <Navigate to="/" />} />
-        <Route path="/contact" element={<ContactUsPage />} />
+        <Route 
+          path="/" 
+          element={
+            authUser ? (
+              // Redirect NGO users to their panel, regular users to landing page
+              authUser.userType === 'ngo' ? <Navigate to="/ngo-panel" replace /> : <LandingPage />
+            ) : (
+              <Navigate to="/login" />
+            )
+          } 
+        />
+        <Route 
+          path="/signup" 
+          element={!authUser ? <SignUpPage /> : (
+            // Redirect based on user type after signup
+            authUser.userType === 'ngo' ? <Navigate to="/ngo-panel" /> : <Navigate to="/" />
+          )} 
+        />
+        <Route 
+          path="/login" 
+          element={!authUser ? <LoginPage /> : (
+            // Redirect based on user type after login
+            authUser.userType === 'ngo' ? <Navigate to="/ngo-panel" /> : <Navigate to="/" />
+          )} 
+        />
+        <Route path="/contact" element={authUser ? <ContactUsPage /> : <Navigate to="/login" />} />
         <Route path="/settings" element={<SettingPage />} />
         <Route path="/profile" element={authUser ? <ProfilePage /> : <Navigate to="/login" />} />
-        <Route path="/adopt" element={<PetAdoptionStore />} />
-        <Route path="/adopt/:id" element={<PetDetailsPage />} />
-        <Route path="/adopt/form/:id" element={<AdoptionFormPage />} />
-        <Route path="/donate" element={<DonationPage />} />
-        <Route path="/rehome" element={<EnhancedPetRehomingForm />} />
-        <Route path="/vet-services" element={<VetServicesPage />} />
+        <Route path="/adopt" element={authUser ? <PetAdoptionStore/> : <Navigate to="/login" />} />
+        <Route path="/adopt/:id" element={authUser ? <PetDetailsPage /> : <Navigate to="/login" />} />
+        <Route path="/adopt/form/:id" element={authUser ? <AdoptionFormPage /> : <Navigate to="/login" />} />
+        <Route path="/donate" element={authUser ? <DonationPage /> : <Navigate to="/login" />} />
+        <Route path="/rehome" element={authUser ? <EnhancedPetRehomingForm /> : <Navigate to="/login" />} />
+        <Route path="/vet-services" element={authUser ? <VetServicesPage /> : <Navigate to="/login" />} />
         <Route path="/my-applications" element={<MyAdoptionsPage />} />
         
-        {/* NGO Panel Routes - Nested under AdminLayout */}
-        <Route path="/ngo-panel" element={<AdminLayout />}>
+        {/* NGO Panel Routes - Protected and Nested under AdminLayout */}
+        <Route 
+          path="/ngo-panel" 
+          element={
+            <ProtectedNGORoute>
+              <AdminLayout />
+            </ProtectedNGORoute>
+          }
+        >
           <Route index element={<Dashboard />} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="add-pet" element={<EnhancedPetRehomingForm />} />
           <Route path="donations" element={<AdminDonationPage />} />
           <Route path="adoptions" element={<AdoptionPage />} />
-          <Route path="users" element={<UserManagementPage />} />
           <Route path="contacts" element={<AdminContactPage />} />
         </Route>
       </Routes>

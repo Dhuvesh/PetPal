@@ -49,8 +49,7 @@ const PetpalAdminDashboard = () => {
         return <DonationPage />;
       case 'Adoption Applications':
         return <AdoptionPage />;
-      case 'User Management':
-        return <UserManagementPage />;
+    
       default:
         return <DashboardPage />;
     }

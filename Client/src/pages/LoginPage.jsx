@@ -11,10 +11,10 @@ const LoginPage = () => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    userType: 'user', // Default user type
+    userType: 'user', // Default user type for UI purposes only
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Basic validation
@@ -25,18 +25,24 @@ const LoginPage = () => {
       return toast.error("Password is required");
     }
 
-    // Simulate different navigation based on user type
-    switch(formData.userType) {
-      case 'user':
-        login(formData);
+    try {
+      // Login with email and password (backend determines user type)
+      const userData = await login({
+        email: formData.email,
+        password: formData.password
+      });
+
+      // Navigate based on the actual user type returned from backend
+      if (userData.userType === 'user') {
         navigate('/');
-        break;
-      case 'ngo':
-        login(formData);
-        navigate('/ngo-dashboard');
-        break;
-      default:
-        toast.error("Invalid user type");
+      } else if (userData.userType === 'ngo') {
+        navigate('/ngo-panel');
+      } else {
+        toast.error("Unknown user type");
+      }
+    } catch (error) {
+      // Error handling is done in the store
+      console.error('Login error:', error);
     }
   };
 
@@ -80,24 +86,30 @@ const LoginPage = () => {
         <div className="bg-base-200 flex items-center justify-center p-12">
           <div className="w-full max-w-md space-y-6">
             <div className="text-center">
-              <h2 className="text-3xl font-bold text-base-content mb-2">Login</h2>
-              <p className="text-base-content/70">Sign in to continue your mission</p>
+              <h2 className="text-3xl font-bold text-base-content mb-2 mt-6">Login</h2>
+              
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              {/* User Type Dropdown */}
+              {/* User Type Info (for display only) */}
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text font-medium">Login as</span>
+                  <span className="label-text font-medium">Account Type</span>
                 </label>
                 <select
                   value={formData.userType}
                   onChange={(e) => setFormData({ ...formData, userType: e.target.value })}
                   className="select select-primary w-full"
+                  disabled={isLoggingIn}
                 >
                   <option value="user">Individual User</option>
                   <option value="ngo">NGO Representative</option>
                 </select>
+                <label className="label">
+                  <span className="label-text-alt text-base-content/60">
+                    This is for display only. We'll detect your account type automatically.
+                  </span>
+                </label>
               </div>
 
               {/* Email Input */}
@@ -112,6 +124,7 @@ const LoginPage = () => {
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className="input input-primary w-full pl-10"
+                    disabled={isLoggingIn}
                   />
                   <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
                     <LucideIcons.Mail className="h-5 w-5 text-base-content/50" />
@@ -131,6 +144,7 @@ const LoginPage = () => {
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                     className="input input-primary w-full pl-10 pr-10"
+                    disabled={isLoggingIn}
                   />
                   <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
                     <LucideIcons.Lock className="h-5 w-5 text-base-content/50" />
@@ -139,6 +153,7 @@ const LoginPage = () => {
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute inset-y-0 right-3 flex items-center"
+                    disabled={isLoggingIn}
                   >
                     {showPassword ? (
                       <LucideIcons.EyeOff className="h-5 w-5 text-base-content/50 hover:text-base-content" />
@@ -172,6 +187,8 @@ const LoginPage = () => {
                 )}
               </button>
             </form>
+
+           
 
             {/* Sign Up Link */}
             <div className="text-center mt-4">

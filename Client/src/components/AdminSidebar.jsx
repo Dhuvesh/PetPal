@@ -33,11 +33,6 @@ const Sidebar = () => {
       path: '/ngo-panel/adoptions' 
     },
     { 
-      name: 'Users', 
-      icon: <Users className="w-5 h-5" />, 
-      path: '/ngo-panel/users' 
-    },
-    { 
       name: 'Donations', 
       icon: <DollarSign className="w-5 h-5" />, 
       path: '/ngo-panel/donations' 
