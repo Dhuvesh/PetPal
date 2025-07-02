@@ -26,26 +26,55 @@ const SignUpPage = () => {
 
   const validateForm = () => {
     // Common validations
-    if (!formData.email.trim()) return toast.error("Email is required");
-    if (!/^\S+@\S+\.\S+$/.test(formData.email)) return toast.error("Invalid email format");
-    if (!formData.password.trim()) return toast.error("Password is required");
-    if (formData.password.length < 6) return toast.error("Password must be at least 6 characters long");
+    if (!formData.email.trim()) {
+      toast.error("Email is required");
+      return false;
+    }
+    if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
+      toast.error("Invalid email format");
+      return false;
+    }
+    if (!formData.password.trim()) {
+      toast.error("Password is required");
+      return false;
+    }
+    if (formData.password.length < 6) {
+      toast.error("Password must be at least 6 characters long");
+      return false;
+    }
 
     // User type specific validations
     if (formData.userType === 'user') {
-      if (!formData.fullName.trim()) return toast.error("Full name is required");
+      if (!formData.fullName.trim()) {
+        toast.error("Full name is required");
+        return false;
+      }
     } else if (formData.userType === 'ngo') {
-      if (!formData.ngoName.trim()) return toast.error("NGO name is required");
-      if (!formData.personName.trim()) return toast.error("Person name is required");
-      if (!formData.phoneNumber.trim()) return toast.error("Phone number is required");
-      if (!/^\+?[\d\s\-\(\)]{10,}$/.test(formData.phoneNumber)) return toast.error("Invalid phone number format");
-      if (!formData.idCardPhoto) return toast.error("Valid ID card photo is required");
+      if (!formData.ngoName.trim()) {
+        toast.error("NGO name is required");
+        return false;
+      }
+      if (!formData.personName.trim()) {
+        toast.error("Person name is required");
+        return false;
+      }
+      if (!formData.phoneNumber.trim()) {
+        toast.error("Phone number is required");
+        return false;
+      }
+      if (!/^\+?[\d\s\-\(\)]{10,}$/.test(formData.phoneNumber)) {
+        toast.error("Invalid phone number format");
+        return false;
+      }
+      if (!formData.idCardPhoto) {
+        toast.error("Valid ID card photo is required");
+        return false;
+      }
     }
 
     return true;
   };
 
-<<<<<<< HEAD
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -53,23 +82,6 @@ const SignUpPage = () => {
       if (!file.type.startsWith('image/')) {
         toast.error("Please upload an image file");
         return;
-=======
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const success = validateForm();
-    if (success) {
-      switch(formData.userType) {
-        case 'user':
-          signup(formData);
-          navigate('/');
-          break;
-        case 'ngo':
-          signup(formData);
-          navigate('/ngo-dashboard');
-          break;
-        default:
-          toast.error("Invalid user type");
->>>>>>> 248ef55cf21ba3bc4e6e78900a0c589282a7227f
       }
       // Validate file size (5MB limit)
       if (file.size > 5 * 1024 * 1024) {
@@ -92,8 +104,8 @@ const SignUpPage = () => {
       if (formData.userType === 'user') {
         navigate('/');
       } else if (formData.userType === 'ngo') {
-        // For NGO users, navigate to dashboard regardless of verification status
-        // They can see their verification status there
+        // For NGO users, navigate to login page
+        // They need to wait for verification before accessing the NGO panel
         navigate('/login');
       }
     } catch (error) {
@@ -116,6 +128,7 @@ const SignUpPage = () => {
             value={formData.fullName}
             onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
             className="input input-primary w-full pl-10"
+            disabled={isSigningUp}
           />
           <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
             <LucideIcons.User className="h-5 w-5 text-base-content/50" />
@@ -139,6 +152,7 @@ const SignUpPage = () => {
             value={formData.ngoName}
             onChange={(e) => setFormData({ ...formData, ngoName: e.target.value })}
             className="input input-primary w-full pl-10"
+            disabled={isSigningUp}
           />
           <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
             <LucideIcons.Building className="h-5 w-5 text-base-content/50" />
@@ -158,6 +172,7 @@ const SignUpPage = () => {
             value={formData.personName}
             onChange={(e) => setFormData({ ...formData, personName: e.target.value })}
             className="input input-primary w-full pl-10"
+            disabled={isSigningUp}
           />
           <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
             <LucideIcons.User className="h-5 w-5 text-base-content/50" />
@@ -177,6 +192,7 @@ const SignUpPage = () => {
             value={formData.phoneNumber}
             onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
             className="input input-primary w-full pl-10"
+            disabled={isSigningUp}
           />
           <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
             <LucideIcons.Phone className="h-5 w-5 text-base-content/50" />
@@ -195,6 +211,7 @@ const SignUpPage = () => {
             accept="image/*"
             onChange={handleFileUpload}
             className="file-input file-input-primary w-full"
+            disabled={isSigningUp}
           />
           {formData.idCardPhoto && (
             <div className="mt-2 flex items-center space-x-2 text-sm text-success">
@@ -253,7 +270,6 @@ const SignUpPage = () => {
           <div className="w-full max-w-md space-y-6">
             <div className="text-center">
               <h2 className="text-3xl font-bold text-base-content mb-2 mt-6">Create Account</h2>
-              
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -353,8 +369,6 @@ const SignUpPage = () => {
                 )}
               </button>
             </form>
-
-           
 
             {/* Login Link */}
             <div className="text-center mt-4">

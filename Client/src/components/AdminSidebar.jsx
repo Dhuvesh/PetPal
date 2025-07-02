@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   Users, 
@@ -8,13 +8,15 @@ import {
   ClipboardList, 
   LogOut, 
   DollarSign, 
-  Contact 
+  Contact,
+  User
 } from 'lucide-react';
-
+import { useAuthStore } from '../store/useAuthStore';
 
 const Sidebar = () => {
   const location = useLocation();
- 
+  const navigate = useNavigate();
+  const { logout, authUser } = useAuthStore();
 
   const menuItems = [
     { 
@@ -44,17 +46,22 @@ const Sidebar = () => {
     }
   ];
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   return (
-    <div className="bg-black text-white h-screen w-64 fixed left-0 top-0 overflow-y-auto shadow-lg">
-      <div className="p-5 border-b border-base-300">
+    <div className="bg-black text-white h-screen w-64 fixed left-0 top-0 overflow-y-auto shadow-lg flex flex-col">
+      <div className="p-5 border-b border-gray-700">
         <h1 className="text-2xl font-bold text-white">PETPAL NGO</h1>
       </div>
 
-      <div className="p-4">
+      <div className="p-4 flex-1">
         <ul className="space-y-2">
           {menuItems.map((item, index) => {
             const isActive = location.pathname === item.path;
@@ -66,7 +73,7 @@ const Sidebar = () => {
                   className={`flex items-center p-3 rounded-lg transition-colors ${
                     isActive 
                       ? 'bg-white text-black' 
-                      : 'hover:bg-slate-400'
+                      : 'hover:bg-slate-700'
                   }`}
                 >
                   {item.icon}
@@ -78,10 +85,39 @@ const Sidebar = () => {
         </ul>
       </div>
 
-      <div className="absolute bottom-0 left-0 w-full p-4 border-t border-base-300">
+      {/* User Info Section */}
+      <div className="p-4 border-t border-gray-700">
+        {authUser && authUser.userType === 'ngo' && (
+          <div className="mb-4 p-3 bg-gray-800 rounded-lg">
+            {/* NGO Name */}
+            <div className="mb-2">
+              <div className="text-xs text-gray-400 uppercase tracking-wide">NGO</div>
+              <div className="text-sm font-semibold text-white truncate">
+                {authUser.ngoName}
+              </div>
+            </div>
+            
+            {/* Representative Name */}
+            <div className="mb-2">
+              <div className="text-xs text-gray-400 uppercase tracking-wide">Representative</div>
+              <div className="text-sm font-medium text-white truncate">
+                {authUser.personName}
+              </div>
+            </div>
+            
+            {/* Email */}
+            <div className="mb-1">
+              <div className="text-xs text-gray-400 uppercase tracking-wide">Email</div>
+              <div className="text-xs text-gray-300 truncate">
+                {authUser.email}
+              </div>
+            </div>
+          </div>
+        )}
+        
         <button 
           onClick={handleLogout}
-          className="flex items-center w-full p-3 text-error hover:bg-base-300 rounded-lg transition-colors"
+          className="flex items-center w-full p-3 text-red-400 hover:bg-gray-800 rounded-lg transition-colors"
         >
           <LogOut className="w-5 h-5" />
           <span className="ml-3">Logout</span>

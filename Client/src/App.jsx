@@ -1,8 +1,8 @@
-import { Navigate, Route, Routes, useLocation, Link } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { useAuthStore } from "./store/UseAuthStore";
 import { useEffect } from "react";
 import { Toaster } from "react-hot-toast";
-import { Loader, MessageCircle } from 'lucide-react';
+import { Loader } from 'lucide-react';
 import { useThemeStore } from "./store/useThemeStore";
 
 // Main pages
@@ -29,7 +29,6 @@ import AdminDonationPage from "./pages/AdminPanel/DonationPage";
 import AdminContactPage from "./pages/AdminPanel/ContactPage";
 import AdoptionFormPage from "./pages/Adoption/AdoptioFormPage";
 import MyAdoptionsPage from "./pages/Adoption/Status";
-import ChatSystem from "./pages/ChatPage";
 
 // Protected Route Component for NGO Panel
 const ProtectedNGORoute = ({ children }) => {
@@ -66,8 +65,6 @@ export default function App() {
 
   // Check if the current path is part of the NGO panel
   const isNGOpanel = location.pathname.startsWith("/ngo-panel");
-  // Check if currently on chat page to hide the chat button
-  const isChatPage = location.pathname === "/chat";
 
   return (
     <div data-theme={theme}>
@@ -111,7 +108,6 @@ export default function App() {
         <Route path="/rehome" element={authUser ? <EnhancedPetRehomingForm /> : <Navigate to="/login" />} />
         <Route path="/vet-services" element={authUser ? <VetServicesPage /> : <Navigate to="/login" />} />
         <Route path="/my-applications" element={<MyAdoptionsPage />} />
-        <Route path="/chat" element={authUser ? <ChatSystem /> : <Navigate to="/login" />} />
         
         {/* NGO Panel Routes - Protected and Nested under AdminLayout */}
         <Route 
@@ -130,18 +126,6 @@ export default function App() {
           <Route path="contacts" element={<AdminContactPage />} />
         </Route>
       </Routes>
-
-      {/* Fixed Chat Button - Only show if user is authenticated and not already on chat page */}
-      {authUser && !isChatPage && (
-        <Link 
-          to="/chat"
-          className="fixed bottom-6 right-6 bg-blue-500 hover:bg-blue-600 text-white p-4 rounded-full shadow-lg transition-all duration-300 hover:scale-110 z-50"
-          title="Open Chat"
-        >
-          <MessageCircle className="w-6 h-6" />
-        </Link>
-      )}
-
       <Toaster />
     </div>
   );

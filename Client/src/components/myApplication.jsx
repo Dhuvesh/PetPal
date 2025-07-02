@@ -285,7 +285,7 @@ const AdoptionStatusTracker = ({ onOpenChat }) => {
     <div className="container mx-auto py-8 px-4 max-w-6xl">
       <div className="bg-white rounded-lg shadow-md overflow-hidden w-full">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+        <div className="px-6 py-4 border-b  border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-bold text-gray-800 flex items-center">
