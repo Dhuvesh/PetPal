@@ -7,7 +7,8 @@ import {
   getDonationById,
   getPublishableKey,
   resendDonationReceipt,
-  getAllDonations  // Import the new controller function
+  getAllDonations,
+  getDonationStats  
 } from '../controllers/donationController.js';
 
 const router = express.Router();
@@ -17,7 +18,8 @@ router.post('/create-payment-intent', createPaymentIntent);
 router.post('/confirm-donation', confirmDonation);
 router.post('/create-subscription', createSubscription);
 router.get('/config', getPublishableKey);
-router.get('/', getAllDonations); // Add the route to get all donations
+router.get('/stats', getDonationStats); // Add stats route BEFORE parameter routes
+router.get('/', getAllDonations);
 
 // Parameter routes should come LAST
 router.post('/:id/resend-receipt', resendDonationReceipt);

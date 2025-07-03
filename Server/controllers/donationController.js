@@ -258,6 +258,82 @@ const getAllDonations = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
+// Add this function to your donationController.js
+
+export const getDonationStats = async (req, res) => {
+  try {
+    // Get total donations count
+    const totalDonations = await Donation.countDocuments();
+    
+    // Get total amount donated
+    const totalAmountResult = await Donation.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalAmount: { $sum: '$amount' }
+        }
+      }
+    ]);
+    
+    const totalAmount = totalAmountResult.length > 0 ? totalAmountResult[0].totalAmount : 0;
+    
+    // Get donations by fund type
+    const donationsByFundType = await Donation.aggregate([
+      {
+        $group: {
+          _id: '$fundType',
+          count: { $sum: 1 },
+          totalAmount: { $sum: '$amount' }
+        }
+      }
+    ]);
+    
+    // Get monthly vs one-time donations
+    const recurringStats = await Donation.aggregate([
+      {
+        $group: {
+          _id: '$isMonthly',
+          count: { $sum: 1 },
+          totalAmount: { $sum: '$amount' }
+        }
+      }
+    ]);
+    
+    // Get recent donations (last 30 days)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    const recentDonations = await Donation.countDocuments({
+      createdAt: { $gte: thirtyDaysAgo }
+    });
+    
+    // Format the response
+    const stats = {
+      total: totalDonations,
+      totalAmount: totalAmount,
+      recent: recentDonations,
+      byFundType: donationsByFundType.reduce((acc, item) => {
+        acc[item._id] = {
+          count: item.count,
+          totalAmount: item.totalAmount
+        };
+        return acc;
+      }, {}),
+      recurring: {
+        monthly: recurringStats.find(item => item._id === true) || { count: 0, totalAmount: 0 },
+        oneTime: recurringStats.find(item => item._id === false) || { count: 0, totalAmount: 0 }
+      }
+    };
+    
+    res.status(200).json(stats);
+  } catch (error) {
+    console.error('Error getting donation stats:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to get donation statistics' 
+    });
+  }
+};
 
 export {
   createPaymentIntent,
@@ -266,5 +342,6 @@ export {
   getDonationById,
   getPublishableKey,
   resendDonationReceipt,
-   getAllDonations 
+  getAllDonations,
+
 };
