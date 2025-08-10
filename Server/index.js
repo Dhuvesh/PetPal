@@ -28,7 +28,7 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(cookieParser());
 app.use(cors({
-    origin: "http://localhost:5173",
+    origin: "https://pet-pal-five.vercel.app/login",
     credentials: true 
 }));
 
