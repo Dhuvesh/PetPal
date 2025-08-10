@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import * as LucideIcons from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../store/useAuthStore';
+import { useAuthStore } from '../store/UseAuthStore';
 import toast from 'react-hot-toast';
 
 const LoginPage = () => {

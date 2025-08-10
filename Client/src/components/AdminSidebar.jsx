@@ -11,7 +11,7 @@ import {
   Contact,
   User
 } from 'lucide-react';
-import { useAuthStore } from '../store/useAuthStore';
+import { useAuthStore } from '../store/UseAuthStore';
 
 const Sidebar = () => {
   const location = useLocation();
