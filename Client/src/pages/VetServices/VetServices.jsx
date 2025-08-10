@@ -31,7 +31,7 @@ const VetServices = () => {
           setUserLocation(location)
 
           try {
-            const { data } = await axiosInstance.get("/vet-clinics", {
+            const { data } = await axiosInstance.get("/api/vet-clinics", {
               params: {
                 latitude: location.latitude,
                 longitude: location.longitude,
@@ -57,7 +57,7 @@ const VetServices = () => {
 
   const handleClinicClick = async (placeId) => {
     try {
-      const { data } = await axiosInstance.get(`/vet-clinics/${placeId}`)
+      const { data } = await axiosInstance.get(`api/vet-clinics/${placeId}`)
       setSelectedClinic(data)
     } catch (err) {
       setError("Failed to fetch clinic details")
