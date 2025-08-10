@@ -10,7 +10,8 @@ import { useAuthStore } from '../store/UseAuthStore';
 //   }
 // });
 
-
+const API_URL = import.meta.env.VITE_API_URL; 
+// Replace with your actual API base URL
 const ChatSystem = () => {
   const { authUser } = useAuthStore();
   const [activeChat, setActiveChat] = useState(null);
@@ -21,7 +22,7 @@ const ChatSystem = () => {
   const [sendingMessage, setSendingMessage] = useState(false);
   const messagesEndRef = useRef(null);
 
-  const BASE_URL = 'http://localhost:3000';
+  const API_URL = import.meta.env.VITE_API_URL; ;
 
   // Fetch user's chats on component mount
   useEffect(() => {
@@ -42,8 +43,8 @@ const ChatSystem = () => {
   const fetchUserChats = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${BASE_URL}/api/chat/user-chats?email=${authUser.email}`);
-      
+      const response = await fetch(`${API_URL}/api/chat/user-chats?email=${authUser.email}`);
+
       if (!response.ok) {
         throw new Error('Failed to fetch chats');
       }
@@ -60,7 +61,7 @@ const ChatSystem = () => {
   const fetchChatMessages = async (chatId) => {
     try {
       setLoading(true);
-      const response = await fetch(`${BASE_URL}/api/chat/messages/${chatId}`);
+      const response = await fetch(`${API_URL}/api/chat/messages/${chatId}`);
       
       if (!response.ok) {
         throw new Error('Failed to fetch messages');
@@ -81,7 +82,7 @@ const ChatSystem = () => {
 
   const markMessagesAsRead = async (chatId) => {
     try {
-      await fetch(`${BASE_URL}/api/chat/mark-read/${chatId}`, {
+      await fetch(`${API_URL}/api/chat/mark-read/${chatId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -103,7 +104,7 @@ const ChatSystem = () => {
     setSendingMessage(true);
 
     try {
-      const response = await fetch(`${BASE_URL}/api/chat/send-message`, {
+      const response = await fetch(`${API_URL}/api/chat/send-message`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

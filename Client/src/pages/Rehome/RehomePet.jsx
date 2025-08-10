@@ -3,6 +3,7 @@ import { X, PlusCircle, Upload, PawPrint, ChevronRight, ChevronLeft, Camera, Use
 import axios from "axios" // Make sure axios is installed and imported
 
 const EnhancedPetRehomingForm = () => {
+   const API_URL = import.meta.env.VITE_API_URL;
   const [step, setStep] = useState(1)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitMessage, setSubmitMessage] = useState("")
@@ -210,7 +211,7 @@ const EnhancedPetRehomingForm = () => {
       
       // Make API call using axios - use the correct endpoint path
       // This fix ensures we're using the correct endpoint that matches your backend routes
-      const response = await axios.post("http://localhost:3000/api/pets/post-pet", formData, {
+      const response = await axios.post(`${API_URL}/api/pets/post-pet`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

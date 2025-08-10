@@ -23,6 +23,7 @@ import { Link } from "react-router-dom"
 import axios from "axios"
 
 const ContactPage = () => {
+   const API_URL = import.meta.env.VITE_API_URL;
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -49,8 +50,8 @@ const ContactPage = () => {
     setLoading(true)
     
     try {
-      const response = await axios.post('http://localhost:3000/api/contacts', formData)
-      
+      const response = await axios.post(`${API_URL}/api/contacts`, formData)
+
       // Show success toast
       showToast("Thank you for your message! We'll get back to you shortly.", "success")
       

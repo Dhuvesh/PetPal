@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 const ContactPage = () => {
+   const API_URL = import.meta.env.VITE_API_URL;
   const [contacts, setContacts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -12,7 +13,7 @@ const ContactPage = () => {
     const fetchContacts = async () => {
       try {
         setLoading(true);
-        const response = await axios.get('http://localhost:3000/api/contacts');
+        const response = await axios.get(`${API_URL}/api/contacts`);
         
         if (response.data.success) {
           setContacts(response.data.data);
@@ -33,7 +34,7 @@ const ContactPage = () => {
   // Function to update contact status
   const updateContactStatus = async (id, status) => {
     try {
-      const response = await axios.put(`http://localhost:3000/api/contacts/${id}`, { status });
+      const response = await axios.put(`${API_URL}/api/contacts/${id}`, { status });
       
       if (response.data.success) {
         // Update the contacts list with the updated contact
@@ -56,8 +57,8 @@ const ContactPage = () => {
   const deleteContact = async (id) => {
     if (window.confirm('Are you sure you want to delete this contact?')) {
       try {
-        const response = await axios.delete(`http://localhost:3000/api/contacts/${id}`);
-        
+        const response = await axios.delete(`${API_URL}/api/contacts/${id}`);
+
         if (response.data.success) {
           // Remove the deleted contact from the list
           setContacts(contacts.filter(contact => contact._id !== id));

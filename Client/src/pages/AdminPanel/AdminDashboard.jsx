@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Calendar, Users, Heart, CheckCircle, Clock, TrendingUp, Dog, Mail, Phone, MapPin, AlertCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Calendar, Users, Heart, CheckCircle, Clock, TrendingUp, Dog, Mail,  AlertCircle } from 'lucide-react';
 
 const Dashboard = () => {
+   const API_URL = import.meta.env.VITE_API_URL;
   const [dashboardStats, setDashboardStats] = useState({
     totalPets: 0,
     activeOwners: 0,
@@ -54,21 +55,21 @@ const Dashboard = () => {
         setApiErrors({});
         
         // Fetch adoption statistics
-        const adoptionData = await fetchWithErrorHandling('http://localhost:3000/api/adoptions/stats', 'adoptions');
+        const adoptionData = await fetchWithErrorHandling(`${API_URL}/api/adoptions/stats`, 'adoptions');
         if (adoptionData) {
           setAdoptionStats(adoptionData);
         }
         
         // Fetch all pets
-        const petsData = await fetchWithErrorHandling('http://localhost:3000/api/pets/get-pet', 'pets');
+        const petsData = await fetchWithErrorHandling(`${API_URL}/api/pets/get-pet`, 'pets');
         const pets = petsData || [];
         
         // Fetch recent adoption requests
-        const recentAdoptionsData = await fetchWithErrorHandling('http://localhost:3000/api/adoptions/get-requests?limit=5', 'recentAdoptions');
+        const recentAdoptionsData = await fetchWithErrorHandling(`${API_URL}/api/adoptions/get-requests?limit=5`, 'recentAdoptions');
         const recentAdoptions = recentAdoptionsData || [];
         
         // Fetch donation statistics (optional - won't break if not available)
-        const donationData = await fetchWithErrorHandling('http://localhost:3000/api/donations/stats', 'donations');
+        const donationData = await fetchWithErrorHandling(`${API_URL}/api/donations/stats`, 'donations');
         if (donationData) {
           setDonationStats(donationData);
         }

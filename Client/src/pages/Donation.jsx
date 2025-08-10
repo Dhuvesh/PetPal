@@ -32,6 +32,7 @@ const stripePromise = loadStripe("pk_test_51PrIcxImr0JnGY7OrH0T3yiPBshD3Xy6wIEUy
 
 // Payment form component
 const DonationPaymentForm = ({ selectedAmount, isMonthly, selectedFund, formData, onPaymentComplete }) => {
+  const API_URL = import.meta.env.VITE_API_URL; 
   const stripe = useStripe()
   const elements = useElements()
   const [loading, setLoading] = useState(false)
@@ -49,8 +50,8 @@ const DonationPaymentForm = ({ selectedAmount, isMonthly, selectedFund, formData
         try {
           setLoading(true);
           console.log("Creating payment intent for:", { amount, selectedFund, isMonthly });
-          
-          const response = await fetch("http://localhost:3000/api/donations/create-payment-intent", {
+
+          const response = await fetch(`${API_URL}/api/donations/create-payment-intent`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -113,7 +114,7 @@ const DonationPaymentForm = ({ selectedAmount, isMonthly, selectedFund, formData
           setError(result.error.message);
         } else if (result.paymentIntent.status === "succeeded") {
           // Payment confirmed, now confirm donation on server
-          const donationResponse = await fetch("http://localhost:3000/api/donations/confirm-donation", {
+          const donationResponse = await fetch(`${API_URL}/api/donations/confirm-donation`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -156,7 +157,7 @@ const DonationPaymentForm = ({ selectedAmount, isMonthly, selectedFund, formData
         }
 
         // Create subscription
-        const subscriptionResponse = await fetch("http://localhost:3000/api/donations/create-subscription", {
+        const subscriptionResponse = await fetch(`${API_URL}/api/donations/create-subscription`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -251,6 +252,7 @@ const DonationPaymentForm = ({ selectedAmount, isMonthly, selectedFund, formData
 };
 
 const DonationPage = () => {
+   const API_URL = import.meta.env.VITE_API_URL;
   const [selectedAmount, setSelectedAmount] = useState("50")
   const [isMonthly, setIsMonthly] = useState(false)
   const [selectedFund, setSelectedFund] = useState("general")
@@ -300,10 +302,11 @@ const DonationPage = () => {
 
   // Handle manual resending of receipt if it failed initially
   const handleResendReceipt = async () => {
+    
     if (!donationResult || !donationResult._id) return;
     
     try {
-      const response = await fetch(`http://localhost:3000/api/donations/${donationResult._id}/resend-receipt`, {
+      const response = await fetch(`${API_URL}/api/donations/${donationResult._id}/resend-receipt`, {
         method: "POST"
       });
       

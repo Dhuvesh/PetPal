@@ -77,6 +77,7 @@ import { Link } from "react-router-dom"
 // ]
 
 const PetAdoptionStore = () => {
+   const API_URL = import.meta.env.VITE_API_URL;
   const [pets, setPets] = useState([])
   const [filteredPets, setFilteredPets] = useState([])
   const [filters, setFilters] = useState({
@@ -93,7 +94,7 @@ const PetAdoptionStore = () => {
   useEffect(() => {
     const fetchPets = async () => {
       try {
-        const response = await fetch("http://localhost:3000/api/pets/get-pet")
+        const response = await fetch(`${API_URL}/api/pets/get-pet`)
         if (!response.ok) {
           throw new Error("Failed to fetch pets")
         }

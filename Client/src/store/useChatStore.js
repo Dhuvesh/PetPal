@@ -1,7 +1,7 @@
 import { create } from "zustand"
 import toast from "react-hot-toast"
 
-const BASE_URL = import.meta.env.MODE === "development" ? "http://localhost:3000" : "/"
+ const API_URL = import.meta.env.VITE_API_URL;
 
 export const useChatStore = create((set, get) => ({
   // State
@@ -24,7 +24,7 @@ export const useChatStore = create((set, get) => ({
     set({ isLoadingChats: true })
     try {
       console.log("Fetching chats for user:", userEmail)
-      const response = await fetch(`${BASE_URL}/api/chat/user-chats?email=${encodeURIComponent(userEmail)}`)
+      const response = await fetch(`${API_URL}/api/chat/user-chats?email=${encodeURIComponent(userEmail)}`)
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
@@ -49,7 +49,7 @@ export const useChatStore = create((set, get) => ({
     set({ isLoadingMessages: true })
     try {
       console.log("Fetching messages for chat:", chatId)
-      const response = await fetch(`${BASE_URL}/api/chat/messages/${chatId}`)
+      const response = await fetch(`${API_URL}/api/chat/messages/${chatId}`)
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
@@ -77,7 +77,7 @@ export const useChatStore = create((set, get) => ({
     set({ isSendingMessage: true })
     try {
       console.log("Sending message to chat:", chatId)
-      const response = await fetch(`${BASE_URL}/api/chat/send-message`, {
+      const response = await fetch(`${API_URL}/api/chat/send-message`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -132,7 +132,7 @@ export const useChatStore = create((set, get) => ({
     if (!chatId || !userEmail) return
 
     try {
-      const response = await fetch(`${BASE_URL}/api/chat/mark-read/${chatId}`, {
+      const response = await fetch(`${API_URL}/api/chat/mark-read/${chatId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -160,7 +160,7 @@ export const useChatStore = create((set, get) => ({
     try {
       console.log("Looking for chat by adoption:", adoptionId, "for user:", userEmail)
       const response = await fetch(
-        `${BASE_URL}/api/chat/by-adoption/${adoptionId}?userEmail=${encodeURIComponent(userEmail)}`,
+        `${API_URL}/api/chat/by-adoption/${adoptionId}?userEmail=${encodeURIComponent(userEmail)}`,
       )
 
       if (!response.ok) {

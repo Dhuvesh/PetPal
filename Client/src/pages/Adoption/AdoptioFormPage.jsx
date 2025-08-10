@@ -5,6 +5,7 @@ import { motion } from "framer-motion"
 import { toast } from "react-hot-toast"
 
 const AdoptionFormPage = () => {
+   const API_URL = import.meta.env.VITE_API_URL;
   const { id } = useParams()
   const navigate = useNavigate()
   const [pet, setPet] = useState(null)
@@ -31,7 +32,7 @@ const AdoptionFormPage = () => {
   useEffect(() => {
     const fetchPetDetails = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/api/pets/get-pet/${id}`)
+        const response = await fetch(`${API_URL}/api/pets/get-pet/${id}`)
         if (!response.ok) {
           throw new Error("Failed to fetch pet details")
         }
@@ -93,8 +94,8 @@ const AdoptionFormPage = () => {
         petId: id,
         ...formData
       }
-      
-      const response = await fetch("http://localhost:3000/api/adoptions/submit-request", {
+
+      const response = await fetch(`${API_URL}/api/adoptions/submit-request`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
