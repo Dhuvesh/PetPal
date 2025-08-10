@@ -3,7 +3,7 @@ import { useAuthStore } from "./store/UseAuthStore";
 import { useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 import { Loader } from 'lucide-react';
-import { useThemeStore } from "../store/useThemeStore"  ;
+import { useThemeStore } from "./store/useThemeStore";
 
 // Main pages
 import LandingPage from "./pages/LandingPage";
