@@ -13,12 +13,17 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import { Chat } from './models/chat.model.js';
 
+
+
+
 dotenv.config();
 
 const PORT = process.env.PORT || 3000;
 
 const app = express();
 const server = http.createServer(app);
+
+
 
 // This is for Stripe webhook - must be raw for signature verification
 app.use('/api/donations/webhook', express.raw({ type: 'application/json' }));
@@ -32,6 +37,8 @@ app.use(cors({
     credentials: true 
 }));
 
+
+
 app.use('/api/auth', AuthRoutes);
 app.use('/api/pets', PetRoutes);
 app.use('/api/vet-clinics',VetRoutes)
@@ -39,6 +46,8 @@ app.use('/api/contacts', contactRoutes);
 app.use('/api/donations', donationRoutes);
 app.use('/api/adoptions', adoptionRoutes);
 app.use('/api/chat', ChatRoutes);
+
+
 
 server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);

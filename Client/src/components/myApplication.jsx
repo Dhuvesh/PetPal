@@ -462,7 +462,7 @@ const AdoptionStatusTracker = ({ onOpenChat }) => {
                     <div className="flex flex-col sm:flex-row lg:flex-col gap-2 lg:items-end">
                       <button
                         onClick={() => handleViewDetails(adoption)}
-                        className="flex items-center justify-center px-3 py-2 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-1 transition-colors"
+                        className="flex items-center justify-center px-3 py-2 text-sm bg-gray-100 text-black rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-1 transition-colors"
                       >
                         <Eye className="mr-1 h-4 w-4" />
                         View Details
@@ -628,9 +628,9 @@ const AdoptionStatusTracker = ({ onOpenChat }) => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Your Information</label>
-                  <div className="bg-gray-50 p-3 rounded border">
+                  <div className="bg-gray-50 p-3 rounded border text-black">
                     <p>
-                      <span className="font-medium">Name:</span> {selectedAdoption.fullName}
+                      <span className="font-medium text-black">Name:</span> {selectedAdoption.fullName}
                     </p>
                     <p>
                       <span className="font-medium">Email:</span> {selectedAdoption.email}
@@ -651,7 +651,7 @@ const AdoptionStatusTracker = ({ onOpenChat }) => {
                 {selectedAdoption.reasonForAdopting && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Reason for Adopting</label>
-                    <div className="bg-gray-50 p-3 rounded border">
+                    <div className="bg-gray-50 p-3 rounded border text-black">
                       <p className="whitespace-pre-wrap">{selectedAdoption.reasonForAdopting}</p>
                     </div>
                   </div>
@@ -660,7 +660,7 @@ const AdoptionStatusTracker = ({ onOpenChat }) => {
                 {selectedAdoption.experience && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Pet Experience</label>
-                    <div className="bg-gray-50 p-3 rounded border">
+                    <div className="bg-gray-50 p-3 rounded border text-black">
                       <p className="whitespace-pre-wrap">{selectedAdoption.experience}</p>
                     </div>
                   </div>
