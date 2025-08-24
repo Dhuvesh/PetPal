@@ -25,6 +25,7 @@ const StatusBadge = ({ status }) => {
 };
 
 const AdoptionPage = () => {
+   const API_URL = import.meta.env.VITE_API_URL;
   const [adoptions, setAdoptions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -42,8 +43,8 @@ const AdoptionPage = () => {
   const fetchAdoptions = async () => {
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:3000/api/adoptions/get-requests");
-      
+      const response = await fetch(`${API_URL}/api/adoptions/get-requests`);
+
       if (!response.ok) {
         throw new Error("Failed to fetch adoption requests");
       }
@@ -87,8 +88,8 @@ const AdoptionPage = () => {
     
     try {
       setProcessingStatus(true);
-      
-      const response = await fetch(`http://localhost:3000/api/adoptions/update-status/${selectedAdoption._id}`, {
+
+      const response = await fetch(`${API_URL}/api/adoptions/update-status/${selectedAdoption._id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

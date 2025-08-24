@@ -4,6 +4,7 @@ import { Heart, MapPin, Weight, Ruler, ArrowLeft, ArrowRight, PawPrint, Calendar
 import { motion, AnimatePresence } from "framer-motion"
 
 const PetDetailsPage = () => {
+   const API_URL = import.meta.env.VITE_API_URL;
   const { id } = useParams()
   const navigate = useNavigate()
   const [pet, setPet] = useState(null)
@@ -14,7 +15,7 @@ const PetDetailsPage = () => {
   useEffect(() => {
     const fetchPetDetails = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/api/pets/get-pet/${id}`)
+        const response = await fetch(`${API_URL}/api/pets/get-pet/${id}`)
         if (!response.ok) {
           throw new Error("Failed to fetch pet details")
         }

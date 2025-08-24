@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import StatusBadge from '../../components/StatusBadge';
 
 const AdminDonationPage = () => {
+   const API_URL = import.meta.env.VITE_API_URL;
   const [donations, setDonations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -19,8 +20,8 @@ const AdminDonationPage = () => {
       try {
         setLoading(true);
         // Change this URL to match your API endpoint, adding pagination
-        const response = await fetch(`http://localhost:3000/api/donations?page=${currentPage}&limit=${limit}`);
-        
+        const response = await fetch(`${API_URL}/api/donations?page=${currentPage}&limit=${limit}`);
+
         if (!response.ok) {
           throw new Error('Failed to fetch donations');
         }
@@ -42,7 +43,7 @@ const AdminDonationPage = () => {
           // Calculate stats from the actual data or from a separate stats endpoint
           const fetchStats = async () => {
             try {
-              const statsResponse = await fetch('http://localhost:3000/api/donations/stats');
+              const statsResponse = await fetch(`${API_URL}/api/donations/stats`);
               if (statsResponse.ok) {
                 const statsData = await statsResponse.json();
                 setStats({

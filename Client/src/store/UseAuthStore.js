@@ -2,7 +2,6 @@ import { create } from "zustand";
 import { axiosInstance } from "../lib/axios";
 import toast from "react-hot-toast";
 
-const BASE_URL = import.meta.env.MODE === "development" ? "http://localhost:3000" : "/";
 
 export const useAuthStore = create((set, get) => ({
   authUser: null,
@@ -13,7 +12,7 @@ export const useAuthStore = create((set, get) => ({
 
   checkAuth: async () => {
     try {
-      const res = await axiosInstance.get("/auth/check");
+      const res = await axiosInstance.get("/api/auth/check");
       set({ authUser: res.data });
     } catch (error) {
       console.log("Error in checkAuth:", error);
@@ -44,7 +43,7 @@ export const useAuthStore = create((set, get) => ({
           idCardPhoto: idCardPhotoBase64
         };
         
-        res = await axiosInstance.post("/auth/ngo-signup", ngoData);
+        res = await axiosInstance.post("/api/auth/ngo-signup", ngoData);
         toast.success("NGO registration submitted successfully! Please wait for verification.");
       } else {
         // Regular user signup
@@ -55,7 +54,7 @@ export const useAuthStore = create((set, get) => ({
           userType: 'user'
         };
         
-        res = await axiosInstance.post("/auth/signup", userData);
+        res = await axiosInstance.post("/api/auth/signup", userData);
         toast.success("Account created successfully");
       }
       
@@ -74,7 +73,7 @@ export const useAuthStore = create((set, get) => ({
   login: async (data) => {
     set({ isLoggingIn: true });
     try {
-      const res = await axiosInstance.post("/auth/login", data);
+      const res = await axiosInstance.post("/api/auth/login", data);
       set({ authUser: res.data });
       toast.success("Logged in successfully");
       return res.data; // Return user data for navigation
@@ -88,7 +87,7 @@ export const useAuthStore = create((set, get) => ({
 
   logout: async () => {
     try {
-      await axiosInstance.post("/auth/logout");
+      await axiosInstance.post("/api/auth/logout");
       set({ authUser: null });
       toast.success("Logged out successfully");
     } catch (error) {
@@ -99,7 +98,7 @@ export const useAuthStore = create((set, get) => ({
   updateProfile: async (data) => {
     set({ isUpdatingProfile: true });
     try {
-      const res = await axiosInstance.put("/auth/update-profile", data);
+      const res = await axiosInstance.put("/api/auth/update-profile", data);
       set({ authUser: res.data });
       toast.success("Profile updated successfully");
     } catch (error) {

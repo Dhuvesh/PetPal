@@ -7,6 +7,7 @@ import { useChatStore } from "../store/useChatStore"
 import { useNavigate } from "react-router-dom"
 
 const AdoptionStatusTracker = ({ onOpenChat }) => {
+  const API_URL = import.meta.env.VITE_API_URL; 
   const { authUser } = useAuthStore()
   const { getChatByAdoption } = useChatStore()
   const [adoptions, setAdoptions] = useState([])
@@ -50,7 +51,7 @@ const AdoptionStatusTracker = ({ onOpenChat }) => {
         ...(searchQuery && { search: searchQuery }),
       })
 
-      const response = await fetch(`http://localhost:3000/api/adoptions/get-user-requests?${queryParams}`)
+      const response = await fetch(`${API_URL}/api/adoptions/get-user-requests?${queryParams}`)
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
@@ -216,7 +217,7 @@ const AdoptionStatusTracker = ({ onOpenChat }) => {
       console.log("Withdrawing adoption request:", adoptionId)
 
       const response = await fetch(
-        `http://localhost:3000/api/adoptions/withdraw-request/${adoptionId}?email=${encodeURIComponent(authUser.email)}`,
+        `${API_URL}/api/adoptions/withdraw-request/${adoptionId}?email=${encodeURIComponent(authUser.email)}`,
         {
           method: "PUT",
           headers: {
