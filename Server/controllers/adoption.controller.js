@@ -8,7 +8,7 @@ import { createChatForAdoption } from "./chat.controller.js"
  * @access Public
  */
 const submitAdoptionRequest = async (req, res) => {
-   const API_URL = import.meta.env.VITE_API_URL;
+   
   try {
     const {
       petId,

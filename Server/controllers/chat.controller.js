@@ -2,10 +2,7 @@ import { Chat, Message } from "../models/chat.model.js"
 import Adoption from "../models/adoption.model.js"
 import Pet from "../models/pet.model.js"
 
-/**
- * Create a new chat when adoption is approved
- * This is called automatically when adoption status changes to "approved"
- */
+// ... (createChatForAdoption, getUserChats, getChatMessages, sendMessage functions are unchanged) ...
 export const createChatForAdoption = async (adoptionId) => {
   try {
     console.log("Creating chat for adoption:", adoptionId)
@@ -84,10 +81,7 @@ export const createChatForAdoption = async (adoptionId) => {
   }
 }
 
-/**
- * Get user's chats (both as buyer and seller)
- * @route GET /api/chat/user-chats
- */
+
 export const getUserChats = async (req, res) => {
   try {
     const { email } = req.query
@@ -131,10 +125,7 @@ export const getUserChats = async (req, res) => {
   }
 }
 
-/**
- * Get chat messages
- * @route GET /api/chat/messages/:chatId
- */
+
 export const getChatMessages = async (req, res) => {
   try {
     const { chatId } = req.params
@@ -170,100 +161,99 @@ export const getChatMessages = async (req, res) => {
   }
 }
 
-/**
- * Send a message
- * @route POST /api/chat/send-message
- */
 export const sendMessage = async (req, res) => {
   try {
-    const { chatId, content, senderEmail, senderName } = req.body
+    const { chatId, content, senderEmail, senderName } = req.body;
+    const io = req.io; 
 
     if (!chatId || !content || !senderEmail || !senderName) {
-      return res.status(400).json({ message: "Missing required fields" })
+      return res.status(400).json({ message: "Missing required fields" });
     }
 
-    console.log("Sending message to chat:", chatId, "from:", senderEmail)
-
-    // Verify chat exists and user has access
-    const chat = await Chat.findById(chatId)
+    const chat = await Chat.findById(chatId);
     if (!chat) {
-      return res.status(404).json({ message: "Chat not found" })
+      return res.status(404).json({ message: "Chat not found" });
+    }
+    
+    // --- CORRECTED: Refactored and more robust role identification ---
+    let senderRole = null;
+    if (chat.buyer.email === senderEmail) {
+        senderRole = "buyer";
+    } else if (chat.seller.email === senderEmail) {
+        senderRole = "seller";
     }
 
-    // Verify user is part of this chat
-    if (chat.buyer.email !== senderEmail && chat.seller.email !== senderEmail) {
-      return res.status(403).json({ message: "You don't have access to this chat" })
+    // Security check: if the sender is neither the buyer nor the seller, deny access.
+    if (!senderRole) {
+      return res.status(403).json({ message: "You don't have access to this chat" });
     }
 
-    // Determine sender role
-    const senderRole = chat.buyer.email === senderEmail ? "buyer" : "seller"
-
-    // Create new message
     const newMessage = new Message({
       chatId,
-      sender: senderRole,
+      sender: senderRole, // Use the explicitly determined role
       senderEmail,
       senderName,
       content: content.trim(),
-    })
+    });
 
-    await newMessage.save()
+    await newMessage.save();
 
-    // Update chat's last message
+    // Update the last message on the chat document
     chat.lastMessage = {
       content: newMessage.content,
       sender: senderRole,
       timestamp: newMessage.timestamp,
-    }
-    await chat.save()
+    };
+    await chat.save();
 
-    console.log("Message sent successfully:", newMessage._id)
-    res.status(201).json(newMessage)
+    // --- CORRECTED: Broadcast a plain object for reliability ---
+    // This ensures no Mongoose-specific data is sent over the socket.
+    io.to(chatId).emit('receive_message', newMessage.toObject());
+    console.log(`Message emitted to room ${chatId}`);
+
+    res.status(201).json(newMessage);
   } catch (error) {
-    console.error("Error in sendMessage:", error)
-    res.status(500).json({ message: "Error sending message", error: error.message })
+    console.error("Error in sendMessage:", error);
+    res.status(500).json({ message: "Error sending message", error: error.message });
   }
-}
+};
 
 /**
  * Mark messages as read
  * @route PUT /api/chat/mark-read/:chatId
  */
 export const markMessagesAsRead = async (req, res) => {
-  try {
-    const { chatId } = req.params
-    const { userEmail } = req.body
+    try {
+        const { chatId } = req.params;
+        const { userEmail } = req.body;
+        const io = req.io; // Get io instance
 
-    if (!userEmail) {
-      return res.status(400).json({ message: "User email is required" })
+        if (!userEmail) {
+            return res.status(400).json({ message: "User email is required" });
+        }
+
+        const result = await Message.updateMany(
+            { chatId, senderEmail: { $ne: userEmail }, read: false },
+            { $set: { read: true } }
+        );
+
+        if (result.modifiedCount > 0) {
+            // If any messages were updated, emit an event to the room
+            io.to(chatId).emit('messages_read', { 
+                chatId, 
+                readerEmail: userEmail 
+            });
+            console.log(`Emitted 'messages_read' to room ${chatId} for user ${userEmail}`);
+        }
+        
+        res.status(200).json({ message: "Messages marked as read" });
+    } catch (error) {
+        console.error("Error in markMessagesAsRead:", error);
+        res.status(500).json({ message: "Error marking messages as read", error: error.message });
     }
+};
 
-    console.log("Marking messages as read for chat:", chatId, "user:", userEmail)
-
-    // Mark all messages in this chat as read for messages not sent by current user
-    const result = await Message.updateMany(
-      {
-        chatId,
-        senderEmail: { $ne: userEmail },
-        read: false,
-      },
-      {
-        $set: { read: true },
-      },
-    )
-
-    console.log("Marked", result.modifiedCount, "messages as read")
-    res.status(200).json({ message: "Messages marked as read" })
-  } catch (error) {
-    console.error("Error in markMessagesAsRead:", error)
-    res.status(500).json({ message: "Error marking messages as read", error: error.message })
-  }
-}
-
-/**
- * Get chat by adoption ID
- * @route GET /api/chat/by-adoption/:adoptionId
- */
+// ... (getChatByAdoption and debugPetOwnerData functions are unchanged) ...
 export const getChatByAdoption = async (req, res) => {
   try {
     const { adoptionId } = req.params
@@ -341,10 +331,7 @@ export const getChatByAdoption = async (req, res) => {
   }
 }
 
-/**
- * Debug function to check pet owner data structure
- * @route GET /api/chat/debug-pet/:petId
- */
+
 export const debugPetOwnerData = async (req, res) => {
   try {
     const { petId } = req.params

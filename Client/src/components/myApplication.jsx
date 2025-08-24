@@ -5,11 +5,12 @@ import { CheckCircle, XCircle, Clock, AlertCircle, Search, MessageCircle, Eye, C
 import { useAuthStore } from "../store/UseAuthStore"
 import { useChatStore } from "../store/useChatStore"
 import { useNavigate } from "react-router-dom"
+import toast from "react-hot-toast"
 
 const AdoptionStatusTracker = ({ onOpenChat }) => {
   const API_URL = import.meta.env.VITE_API_URL; 
   const { authUser } = useAuthStore()
-  const { getChatByAdoption } = useChatStore()
+  const { getChatByAdoption, setActiveChat, fetchChatMessages } = useChatStore()
   const [adoptions, setAdoptions] = useState([])
   const Navigate = useNavigate()
   const [loading, setLoading] = useState(true)
@@ -85,20 +86,33 @@ const AdoptionStatusTracker = ({ onOpenChat }) => {
 
     try {
       console.log("Attempting to start chat for adoption:", adoption._id, isRetry ? "(retry)" : "")
-      Navigate('/chat')
+      
       // Check if chat exists for this adoption
       const existingChat = await getChatByAdoption(adoption._id, authUser.email)
 
       if (existingChat) {
-        console.log("Chat found, opening chat:", existingChat._id)
+        console.log("Chat found, navigating to chat:", existingChat._id)
         
-        // Chat exists, open it
-        if (onOpenChat) {
-          onOpenChat(existingChat)
-        }
+        // Set the active chat in the store
+        setActiveChat(existingChat)
+        
+        // Fetch messages for the chat
+        await fetchChatMessages(existingChat._id, authUser.email)
+        
+        // Navigate to chat page
+        Navigate('/chat')
+        
+        // Show success message
+        toast.success(`Chat opened with ${existingChat.userRole === 'buyer' ? existingChat.seller.name : existingChat.buyer.name}`)
+        
         // Reset retry attempts on success
         setChatRetryAttempts((prev) => ({ ...prev, [adoption._id]: 0 }))
         setError(null)
+        
+        // Call onOpenChat if provided for backward compatibility
+        if (onOpenChat) {
+          onOpenChat(existingChat)
+        }
       } else {
         console.log("No chat found for approved adoption:", adoption._id)
 
@@ -111,29 +125,27 @@ const AdoptionStatusTracker = ({ onOpenChat }) => {
           setChatRetryAttempts((prev) => ({ ...prev, [adoption._id]: currentRetries + 1 }))
 
           // Show user-friendly message
-          setError("Setting up your chat... Please wait a moment.")
+          toast.loading("Setting up your chat... Please wait a moment.", { duration: 3000 })
 
-          // Wait and retry
+          // Wait and retry with increasing delay
           setTimeout(
             () => {
               handleStartChat(adoption, true)
             },
-            2000 * (currentRetries + 1),
-          ) // Increasing delay
+            2000 * (currentRetries + 1)
+          )
 
           return // Don't set loading to false yet
         } else {
           // Max retries reached or manual retry
           console.warn("Chat not available after retries for adoption:", adoption._id)
-          setError(
-            "Chat is not available yet. The system may still be setting it up. Please try again in a few minutes or contact support if the issue persists.",
-          )
+          toast.error("Chat is not available yet. The system may still be setting it up. Please try again in a few minutes.")
           setChatRetryAttempts((prev) => ({ ...prev, [adoption._id]: 0 })) // Reset for next time
         }
       }
     } catch (error) {
       console.error("Error accessing chat:", error)
-      setError("Failed to access chat. Please try again or contact support if the issue persists.")
+      toast.error("Failed to access chat. Please try again or contact support if the issue persists.")
       setChatRetryAttempts((prev) => ({ ...prev, [adoption._id]: 0 })) // Reset on error
     } finally {
       setLoadingChat((prev) => ({ ...prev, [chatLoadingKey]: false }))
@@ -232,12 +244,14 @@ const AdoptionStatusTracker = ({ onOpenChat }) => {
       }
 
       console.log("Adoption request withdrawn successfully")
+      toast.success("Adoption request withdrawn successfully")
+      
       // Refresh the adoption requests
       await fetchAdoptions()
       setError(null)
     } catch (err) {
       console.error("Error withdrawing adoption request:", err)
-      setError("Failed to withdraw adoption request. Please try again.")
+      toast.error("Failed to withdraw adoption request. Please try again.")
     } finally {
       setWithdrawingRequest((prev) => ({ ...prev, [adoptionId]: false }))
     }
@@ -490,7 +504,7 @@ const AdoptionStatusTracker = ({ onOpenChat }) => {
                           </button>
 
                           {/* Retry button for chat issues */}
-                          {(chatRetryAttempts[adoption._id] > 0 || error) && !loadingChat[adoption._id] && (
+                          {(chatRetryAttempts[adoption._id] > 0) && !loadingChat[adoption._id] && (
                             <button
                               onClick={() => handleRetryChat(adoption)}
                               className="flex items-center justify-center px-3 py-1 text-xs bg-orange-100 text-orange-700 rounded-md hover:bg-orange-200 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-1 transition-colors"

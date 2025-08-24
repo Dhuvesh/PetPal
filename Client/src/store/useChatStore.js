@@ -1,205 +1,282 @@
-import { create } from "zustand"
-import toast from "react-hot-toast"
+import { create } from "zustand";
+import toast from "react-hot-toast";
+import { io } from "socket.io-client";
+import { useAuthStore } from "./UseAuthStore";
 
- const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL;
+let socket;
 
 export const useChatStore = create((set, get) => ({
-  // State
-  chats: [],
-  activeChat: null,
-  messages: [],
-  isLoadingChats: false,
-  isLoadingMessages: false,
-  isSendingMessage: false,
+    // State
+    socket: null,
+    chats: [],
+    activeChat: null,
+    messages: [],
+    isLoadingChats: false,
+    isLoadingMessages: false,
+    unreadNotifications: 0,
+    recentMessages: [],
 
-  // Actions
-  setActiveChat: (chat) => set({ activeChat: chat }),
+    // Actions
+    initializeSocket: () => {
+        // Prevent multiple initializations
+        if (get().socket || !useAuthStore.getState().authUser) return;
 
-  clearActiveChat: () => set({ activeChat: null, messages: [] }),
+        console.log("Initializing socket connection...");
+        socket = io(API_URL);
 
-  // Fetch user's chats
-  fetchUserChats: async (userEmail) => {
-    if (!userEmail) return
+        socket.on('connect', () => {
+            console.log("Socket connected:", socket.id);
+            set({ socket });
+            // Fetch user chats right after connecting
+            get().fetchUserChats(useAuthStore.getState().authUser.email);
+        });
 
-    set({ isLoadingChats: true })
-    try {
-      console.log("Fetching chats for user:", userEmail)
-      const response = await fetch(`${API_URL}/api/chat/user-chats?email=${encodeURIComponent(userEmail)}`)
+        socket.on('disconnect', () => {
+            console.log("Socket disconnected");
+            set({ socket: null });
+        });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.message || "Failed to fetch chats")
-      }
+        socket.on('receive_message', (newMessage) => {
+            const { activeChat } = get();
+            const authUser = useAuthStore.getState().authUser;
+            if (!authUser || newMessage.senderEmail === authUser.email) return;
 
-      const data = await response.json()
-      console.log("Fetched chats:", data.length)
-      set({ chats: data })
-    } catch (error) {
-      console.error("Error fetching chats:", error)
-      toast.error("Failed to load chats")
-    } finally {
-      set({ isLoadingChats: false })
-    }
-  },
+            const isChatActive = activeChat?._id === newMessage.chatId;
 
-  // Fetch messages for a specific chat
-  fetchChatMessages: async (chatId, userEmail) => {
-    if (!chatId || !userEmail) return
+            set((state) => {
+                const chatToUpdate = state.chats.find(c => c._id === newMessage.chatId);
 
-    set({ isLoadingMessages: true })
-    try {
-      console.log("Fetching messages for chat:", chatId)
-      const response = await fetch(`${API_URL}/api/chat/messages/${chatId}`)
+                if (!chatToUpdate) {
+                    get().fetchUserChats(authUser.email);
+                    return {};
+                }
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.message || "Failed to fetch messages")
-      }
+                const updatedChat = {
+                    ...chatToUpdate,
+                    lastMessage: {
+                        content: newMessage.content,
+                        timestamp: newMessage.timestamp,
+                        sender: newMessage.sender
+                    },
+                    unreadCount: !isChatActive ? (chatToUpdate.unreadCount || 0) + 1 : chatToUpdate.unreadCount,
+                };
 
-      const data = await response.json()
-      set({ messages: data.messages || [] })
+                const otherChats = state.chats.filter(c => c._id !== newMessage.chatId);
+                const newChats = [updatedChat, ...otherChats];
 
-      // Mark messages as read
-      await get().markMessagesAsRead(chatId, userEmail)
-    } catch (error) {
-      console.error("Error fetching messages:", error)
-      toast.error("Failed to load messages")
-      set({ messages: [] })
-    } finally {
-      set({ isLoadingMessages: false })
-    }
-  },
+                let newRecentMessages = [...state.recentMessages];
+                let newUnreadNotifications = state.unreadNotifications;
 
-  // Send a new message
-  sendMessage: async (chatId, content, senderEmail, senderName) => {
-    if (!chatId || !content.trim() || !senderEmail || !senderName) return false
+                if (!isChatActive) {
+                    const messageNotification = {
+                        id: newMessage._id || Date.now(),
+                        chatId: newMessage.chatId,
+                        senderName: newMessage.senderName || 'Unknown',
+                        content: newMessage.content,
+                        timestamp: newMessage.timestamp,
+                        petName: chatToUpdate.petId?.name || 'Pet'
+                    };
+                    newRecentMessages = [messageNotification, ...newRecentMessages.slice(0, 4)];
+                    newUnreadNotifications += 1;
 
-    set({ isSendingMessage: true })
-    try {
-      console.log("Sending message to chat:", chatId)
-      const response = await fetch(`${API_URL}/api/chat/send-message`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          chatId,
-          content: content.trim(),
-          senderEmail,
-          senderName,
-        }),
-      })
+                    toast.success(`New message from ${newMessage.senderName}`, {
+                        duration: 4000,
+                        position: 'top-right',
+                        style: { background: '#10B981', color: 'white' },
+                        icon: '💬',
+                    });
+                }
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.message || "Failed to send message")
-      }
+                return {
+                    chats: newChats,
+                    unreadNotifications: newUnreadNotifications,
+                    recentMessages: newRecentMessages
+                };
+            });
 
-      const newMessage = await response.json()
+            if (isChatActive) {
+                set((state) => ({ messages: [...state.messages, newMessage] }));
+                get().markMessagesAsRead(newMessage.chatId, authUser.email);
+            }
+        });
+        
+        socket.on('messages_read', ({ chatId, readerEmail }) => {
+            const authUser = useAuthStore.getState().authUser;
+            if (!authUser || readerEmail === authUser.email) return;
 
-      // Add message to current messages
-      set((state) => ({
-        messages: [...state.messages, newMessage],
-      }))
+            if (get().activeChat?._id === chatId) {
+                set(state => ({
+                    messages: state.messages.map(msg =>
+                        msg.senderEmail === authUser.email ? { ...msg, read: true } : msg
+                    )
+                }));
+            }
+        });
+    },
 
-      // Update the chat's last message in the chat list
-      set((state) => ({
-        chats: state.chats.map((chat) =>
-          chat._id === chatId
-            ? {
-                ...chat,
-                lastMessage: {
-                  content: content.trim(),
-                  timestamp: newMessage.timestamp,
-                },
-              }
-            : chat,
-        ),
-      }))
-
-      return true
-    } catch (error) {
-      console.error("Error sending message:", error)
-      toast.error("Failed to send message")
-      return false
-    } finally {
-      set({ isSendingMessage: false })
-    }
-  },
-
-  // Mark messages as read
-  markMessagesAsRead: async (chatId, userEmail) => {
-    if (!chatId || !userEmail) return
-
-    try {
-      const response = await fetch(`${API_URL}/api/chat/mark-read/${chatId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userEmail,
-        }),
-      })
-
-      if (response.ok) {
-        // Update unread count in chat list
-        set((state) => ({
-          chats: state.chats.map((chat) => (chat._id === chatId ? { ...chat, unreadCount: 0 } : chat)),
-        }))
-      }
-    } catch (error) {
-      console.error("Error marking messages as read:", error)
-    }
-  },
-
-  // Get chat by adoption ID
-  getChatByAdoption: async (adoptionId, userEmail) => {
-    if (!adoptionId || !userEmail) return null
-
-    try {
-      console.log("Looking for chat by adoption:", adoptionId, "for user:", userEmail)
-      const response = await fetch(
-        `${API_URL}/api/chat/by-adoption/${adoptionId}?userEmail=${encodeURIComponent(userEmail)}`,
-      )
-
-      if (!response.ok) {
-        if (response.status === 404) {
-          console.log("Chat not found for adoption:", adoptionId)
-          return null
+    disconnectSocket: () => {
+        if (get().socket) {
+            console.log("Disconnecting socket...");
+            get().socket.disconnect();
+            set({ socket: null, chats: [], messages: [], activeChat: null, unreadNotifications: 0, recentMessages: [] });
         }
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.message || "Failed to fetch chat")
-      }
+    },
+    
+    setActiveChat: (chat) => {
+        const currentActiveChat = get().activeChat;
+        if (socket) {
+            if (currentActiveChat) socket.emit('leave_room', currentActiveChat._id);
+            socket.emit('join_room', chat._id);
+        }
+        set((state) => ({
+            activeChat: chat,
+            recentMessages: state.recentMessages.filter(msg => msg.chatId !== chat._id),
+            unreadNotifications: Math.max(0, state.unreadNotifications - (chat.unreadCount || 0))
+        }));
+    },
 
-      const chat = await response.json()
-      console.log("Chat found for adoption:", adoptionId)
-      return chat
-    } catch (error) {
-      console.error("Error fetching chat by adoption:", error)
-      return null
-    }
-  },
+    clearActiveChat: () => {
+        const currentActiveChat = get().activeChat;
+        if (socket && currentActiveChat) {
+            socket.emit('leave_room', currentActiveChat._id);
+        }
+        set({ activeChat: null, messages: [] });
+    },
 
-  // Update chat in the list (useful for real-time updates)
-  updateChatInList: (chatId, updates) => {
-    set((state) => ({
-      chats: state.chats.map((chat) => (chat._id === chatId ? { ...chat, ...updates } : chat)),
-    }))
-  },
+    clearNotifications: () => set({ unreadNotifications: 0, recentMessages: [] }),
 
-  // Add new message to current chat (useful for real-time updates)
-  addMessageToCurrentChat: (message) => {
-    const { activeChat } = get()
-    if (activeChat && message.chatId === activeChat._id) {
-      set((state) => ({
-        messages: [...state.messages, message],
-      }))
-    }
-  },
+    markNotificationAsRead: (messageId) => {
+        set((state) => ({
+            recentMessages: state.recentMessages.filter(msg => msg.id !== messageId),
+            unreadNotifications: Math.max(0, state.unreadNotifications - 1)
+        }));
+    },
+    
+    // --- MODIFIED fetchUserChats ---
+    fetchUserChats: async (userEmail) => {
+        if (!userEmail) return;
+        set({ isLoadingChats: true });
+        try {
+            const response = await fetch(`${API_URL}/api/chat/user-chats?email=${encodeURIComponent(userEmail)}`);
+            if (!response.ok) throw new Error("Failed to fetch chats");
+            const data = await response.json();
+            set({ chats: data });
 
-  // Refresh chat list (useful after adoption approval)
-  refreshChats: async (userEmail) => {
-    await get().fetchUserChats(userEmail)
-  },
-}))
+            // *** CRUCIAL FIX ***
+            // After fetching chats, join all their rooms to receive notifications
+            if (socket && data.length > 0) {
+                const chatIds = data.map(chat => chat._id);
+                socket.emit('join_all_rooms', chatIds);
+            }
+        } catch (error) {
+            toast.error("Failed to load chats");
+        } finally {
+            set({ isLoadingChats: false });
+        }
+    },
+
+    fetchChatMessages: async (chatId, userEmail) => {
+        if (!chatId || !userEmail) return;
+        set({ isLoadingMessages: true });
+        try {
+            const response = await fetch(`${API_URL}/api/chat/messages/${chatId}`);
+            if (!response.ok) throw new Error("Failed to fetch messages");
+            const data = await response.json();
+            set({ messages: data.messages || [] });
+            await get().markMessagesAsRead(chatId, userEmail);
+        } catch (error) {
+            toast.error("Failed to load messages");
+        } finally {
+            set({ isLoadingMessages: false });
+        }
+    },
+
+    sendMessage: async (chatId, content, senderEmail, senderName) => {
+        if (!chatId || !content.trim()) return;
+
+        const tempId = `temp_${Date.now()}`;
+        const sentMessage = {
+            _id: tempId,
+            chatId,
+            content: content.trim(),
+            senderEmail,
+            senderName,
+            sender: get().activeChat.userRole,
+            timestamp: new Date().toISOString(),
+            read: false,
+        };
+
+        set((state) => {
+            const updatedMessages = [...state.messages, sentMessage];
+            const chatToUpdate = state.chats.find(c => c._id === chatId);
+            let updatedChats = state.chats;
+
+            if (chatToUpdate) {
+                const updatedChat = {
+                    ...chatToUpdate,
+                    lastMessage: {
+                        content: sentMessage.content,
+                        timestamp: sentMessage.timestamp,
+                        sender: sentMessage.sender
+                    }
+                };
+                const otherChats = state.chats.filter(c => c._id !== chatId);
+                updatedChats = [updatedChat, ...otherChats];
+            }
+            
+            return { messages: updatedMessages, chats: updatedChats };
+        });
+
+        try {
+            const response = await fetch(`${API_URL}/api/chat/send-message`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ chatId, content, senderEmail, senderName }),
+            });
+            if (!response.ok) throw new Error("Failed to send message");
+            const actualMessage = await response.json();
+            set(state => ({
+                messages: state.messages.map(msg => msg._id === tempId ? actualMessage : msg),
+            }));
+        } catch (error) {
+            toast.error("Failed to send message");
+            set(state => ({
+                messages: state.messages.filter(msg => msg._id !== tempId)
+            }));
+        }
+    },
+    
+    markMessagesAsRead: async (chatId, userEmail) => {
+        if (!chatId || !userEmail) return;
+        try {
+            set((state) => ({
+                chats: state.chats.map((chat) =>
+                    chat._id === chatId ? { ...chat, unreadCount: 0 } : chat
+                ),
+            }));
+            await fetch(`${API_URL}/api/chat/mark-read/${chatId}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ userEmail }),
+            });
+        } catch (error) {
+            console.error("Error marking messages as read:", error);
+        }
+    },
+
+    getChatByAdoption: async (adoptionId, userEmail) => {
+        if (!adoptionId || !userEmail) return null;
+        try {
+            const response = await fetch(`${API_URL}/api/chat/by-adoption/${adoptionId}?userEmail=${encodeURIComponent(userEmail)}`);
+            if (!response.ok) {
+                if (response.status === 404) return null;
+                throw new Error("Failed to fetch chat by adoption");
+            }
+            return await response.json();
+        } catch (error) {
+            console.error("Error fetching chat by adoption:", error);
+            return null;
+        }
+    },
+}));

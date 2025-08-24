@@ -29,6 +29,7 @@ import AdminDonationPage from "./pages/AdminPanel/DonationPage";
 import AdminContactPage from "./pages/AdminPanel/ContactPage";
 import AdoptionFormPage from "./pages/Adoption/AdoptioFormPage";
 import MyAdoptionsPage from "./pages/Adoption/Status";
+import ChatSystem from "./pages/ChatPage";
 
 // Protected Route Component for NGO Panel
 const ProtectedNGORoute = ({ children }) => {
@@ -108,7 +109,9 @@ export default function App() {
         <Route path="/rehome" element={authUser ? <EnhancedPetRehomingForm /> : <Navigate to="/login" />} />
         <Route path="/vet-services" element={authUser ? <VetServicesPage /> : <Navigate to="/login" />} />
         <Route path="/my-applications" element={<MyAdoptionsPage />} />
-        
+
+        <Route path="/chat" element={authUser ? <ChatSystem /> : <Navigate to="/login" />} />
+
         {/* NGO Panel Routes - Protected and Nested under AdminLayout */}
         <Route 
           path="/ngo-panel" 

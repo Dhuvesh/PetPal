@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { MapPin, Phone, Clock, Star, Loader2, Globe, ChevronRight } from "lucide-react"
+import { MapPin, Phone, Clock, Loader2, Globe, ChevronRight } from "lucide-react"
 import { axiosInstance } from "../../lib/axios"
 
 const GOOGLE_API_KEY = import.meta.env.VITE_GOOGLE_API_KEY
