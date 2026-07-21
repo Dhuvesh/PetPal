@@ -45,6 +45,9 @@ const PostPet = async (req, res) => {
         try {
           const result = await cloudinary.uploader.upload(req.files[photoField][0].path, {
             folder: "pet-rehoming",
+            transformation:[
+              {quality: "auto"},{fetch_format: "auto"}
+            ]
           })
           photoUrls.push(result.secure_url)
         } catch (uploadError) {
