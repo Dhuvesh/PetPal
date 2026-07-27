@@ -18,7 +18,7 @@ import {
   Mail
 } from "lucide-react"
 import { Link } from "react-router-dom"
-// Stripe imports
+
 import { loadStripe } from "@stripe/stripe-js"
 import {
   Elements,
@@ -27,7 +27,6 @@ import {
   useElements
 } from "@stripe/react-stripe-js"
 
-// Initialize Stripe with your publishable key
 const stripePromise = loadStripe("pk_test_51PrIcxImr0JnGY7OrH0T3yiPBshD3Xy6wIEUyUV8PWdiNqgAqzojVrmfFdVQGr6v58DqzD1mboRl3uV8Uhv8w1dX00TVdQTqG7")
 
 // Payment form component
@@ -377,7 +376,7 @@ const DonationPage = () => {
     {
       id: 1,
       question: "Is my donation tax-deductible?",
-      answer: "Yes! Pet Haven is a registered 501(c)(3) nonprofit organization, so all donations are tax-deductible to the extent allowed by law. You will receive a tax receipt for your records."
+      answer: "Yes! Pet Pal is a registered 501(c)(3) nonprofit organization, so all donations are tax-deductible to the extent allowed by law. You will receive a tax receipt for your records."
     },
     {
       id: 2,
@@ -905,7 +904,7 @@ const DonationPage = () => {
             <div>
               <h2 className="text-3xl font-bold mb-6 text-base-content">Our Commitment to Transparency</h2>
               <p className="text-base-content/70 mb-6">
-                At Pet Haven, we believe in complete transparency with how we use your generous donations. 
+                At Pet Pal, we believe in complete transparency with how we use your generous donations. 
                 We're committed to maximizing the impact of every dollar you entrust to us.
               </p>
               <ul className="space-y-4">
@@ -1062,7 +1061,7 @@ const DonationPage = () => {
       <div className="footer footer-center p-4 bg-base-200 text-base-content">
         <div>
           <p>
-            © {new Date().getFullYear()} Pet Haven. All rights reserved. Designed with{" "}
+            © {new Date().getFullYear()} Pet Pal. All rights reserved. Designed with{" "}
             <Heart className="inline-block text-error" size={16} /> by Our Dedicated Team
           </p>
         </div>

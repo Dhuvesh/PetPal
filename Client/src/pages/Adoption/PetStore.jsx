@@ -2,79 +2,7 @@ import { useState, useEffect } from "react"
 import { Heart, Search, X, PawPrint, ArrowRight, FilterIcon, HeartIcon } from "lucide-react"
 import { Link } from "react-router-dom"
 
-// Pet Data
-// const initialPets = [
-//   {
-//     id: 1,
-//     name: "Buddy",
-//     type: "dog",
-//     breed: "Labrador Retriever",
-//     age: 3,
-//     gender: "Male",
-//     weight: 55,
-//     image: "/api/placeholder/400/300",
-//     description: "Friendly and energetic Labrador who loves to play fetch and cuddle.",
-//     personality: ["Playful", "Good with kids", "Trained"],
-//     specialNeeds: false,
-//     adoptionFee: 250,
-//   },
-//   {
-//     id: 2,
-//     name: "Whiskers",
-//     type: "cat",
-//     breed: "Siamese",
-//     age: 2,
-//     gender: "Female",
-//     weight: 10,
-//     image: "/api/placeholder/400/300",
-//     description: "Elegant Siamese cat with a love for sunbathing and gentle pets.",
-//     personality: ["Calm", "Independent", "Affectionate"],
-//     specialNeeds: false,
-//     adoptionFee: 150,
-//   },
-//   {
-//     id: 3,
-//     name: "Hoppy",
-//     type: "rabbit",
-//     breed: "Holland Lop",
-//     age: 1,
-//     gender: "Male",
-//     weight: 3,
-//     image: "/api/placeholder/400/300",
-//     description: "Adorable and soft Holland Lop rabbit, perfect for first-time pet owners.",
-//     personality: ["Gentle", "Curious", "Playful"],
-//     specialNeeds: false,
-//     adoptionFee: 100,
-//   },
-//   {
-//     id: 4,
-//     name: "Luna",
-//     type: "dog",
-//     breed: "German Shepherd",
-//     age: 4,
-//     gender: "Female",
-//     weight: 65,
-//     image: "/api/placeholder/400/300",
-//     description: "Intelligent and loyal German Shepherd looking for an active family.",
-//     personality: ["Protective", "Smart", "Trainable"],
-//     specialNeeds: false,
-//     adoptionFee: 300,
-//   },
-//   {
-//     id: 5,
-//     name: "Mittens",
-//     type: "cat",
-//     breed: "Persian",
-//     age: 5,
-//     gender: "Female",
-//     weight: 12,
-//     image: "/api/placeholder/400/300",
-//     description: "Regal Persian cat who enjoys quiet environments and gentle attention.",
-//     personality: ["Calm", "Elegant", "Low-energy"],
-//     specialNeeds: true,
-//     adoptionFee: 200,
-//   },
-// ]
+
 
 const PetAdoptionStore = () => {
    const API_URL = import.meta.env.VITE_API_URL;
@@ -162,7 +90,7 @@ const PetAdoptionStore = () => {
         <header className="mb-12 text-center">
           <h1 className="text-5xl font-extrabold text-primary mb-4 flex items-center justify-center">
             <PawPrint className="mr-4 text-blue-500" size={48} />
-            Pet Adoption Haven
+            Pet Adoption Pal
             <Heart className="ml-4 text-red-500 animate-pulse" size={48} />
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">

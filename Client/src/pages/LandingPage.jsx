@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import {
   PawPrint,
   Dog,
@@ -21,12 +21,85 @@ import {
   Search,
   FileText,
   PhoneCall,
-  Check
+  Check,
+  MessageCircle,
+  Send,
+  Circle,
+  Zap,
+  Weight,
+  Sparkles,
+  HandHeart,
+  Users,
+  CalendarCheck,
+  ClipboardList,
+  Stamp,
+  Syringe,
+  CalendarClock,
+  FileHeart,
+  HeartIcon,
+  FilterIcon,
+  Navigation,
 } from "lucide-react"
 import { Link } from "react-router-dom"
 
+const DUMMY_PETS = [
+  {
+    _id: "dummy-dog-1",
+    name: "Buddy",
+    species: "dog",
+    breed: "Golden Retriever",
+    age: "3 years",
+    location: "Portland, OR",
+    weight: "28 kg",
+    photo: "https://images.unsplash.com/photo-1552053831-71594a27632d?w=800&q=80",
+    description:
+      "Buddy greets every person like they're the best part of his day. Gentle with kids, endlessly patient, and always up for a walk in the park.",
+    traits: ["Affectionate", "Great with kids", "Well-trained"],
+  },
+  {
+    
+    name: "Luna",
+    species: "cat",
+    breed: "British Shorthair",
+    age: "2 years",
+    location: "Austin, TX",
+    weight: "4.5 kg",
+    photo: "https://images.unsplash.com/photo-1533738363-b7f9aef128ce?w=800&q=80",
+    description:
+      "Luna is equal parts elegant and silly — she'll nap in a sunbeam for hours, then chase a feather toy like her life depends on it. A calm, loving presence in any home.",
+    traits: ["Calm & cuddly", "Litter trained", "Loves laps"],
+  },
+  {
+    
+    name: "Coco",
+    species: "rabbit",
+    breed: "Holland Lop",
+    age: "1 year",
+    location: "Denver, CO",
+    weight: "1.8 kg",
+    photo: "https://www.orangepet.in/cdn/shop/articles/close-up-rabbit-field_1024x.jpg?v=1763017572",
+    description:
+      "Coco is a gentle little bundle of curiosity, perfect for a quiet, loving household. She'll happily hop over for head scratches the moment you sit down.",
+    traits: ["Gentle", "Easy first pet", "Loves attention"],
+  },
+]
+
+const typeIcon = (type) => {
+  switch (type) {
+    case "dog":
+      return <Dog className="w-4 h-4" />
+    case "cat":
+      return <Cat className="w-4 h-4" />
+    case "rabbit":
+      return <Rabbit className="w-4 h-4" />
+    default:
+      return <PawPrint className="w-4 h-4" />
+  }
+}
+
 const LandingPage = () => {
   const [selectedPetType, setSelectedPetType] = useState("all")
+  const [searchQuery, setSearchQuery] = useState("")
   const [animatedPets, setAnimatedPets] = useState([])
 
   useEffect(() => {
@@ -45,64 +118,19 @@ const LandingPage = () => {
     setAnimatedPets(petIcons)
   }, [])
 
-  const pets = [
-    {
-      id: 1,
-      name: "Buddy",
-      type: "dog",
-      breed: "Labrador",
-      age: "3 years",
-      image: "https://img.freepik.com/free-photo/labrador-retrieve_155003-150.jpg?t=st=1737830012~exp=1737833612~hmac=8725dbea0d8af5cfa4841c7f2e716f3f25c66ff5a5e08b264698306e1343b92e&w=996",
-      description: "Energetic and loving companion, great with kids!",
-    },
-    {
-      id: 2,
-      name: "Whiskers",
-      type: "cat",
-      breed: "Siamese",
-      age: "2 years",
-      image: "https://img.freepik.com/free-photo/beautiful-pale-blue-eyes-cream-gray-cat_493961-451.jpg?t=st=1737830052~exp=1737833652~hmac=e4112a3fcb0e85ba8db5c1495c3e2ce64e381df526513e8685c661f416bbaca8&w=996",
-      description: "Elegant and playful, loves cuddles and sunbathing.",
-    },
-    {
-      id: 3,
-      name: "Hoppy",
-      type: "rabbit",
-      breed: "Holland Lop",
-      age: "1 year",
-      image: "https://img.freepik.com/free-photo/closeup-shot-cute-rabbit-green-grass-with-blurred-background_181624-4255.jpg?t=st=1737830091~exp=1737833691~hmac=9843cc9b0997e67f90dd260dd5cf609a1961c355dcf6811c46e7b142f0abd0a6&w=996",
-      description: "Adorable and gentle, perfect for first-time pet owners.",
-    },
-    {
-      id: 4,
-      name: "Luna",
-      type: "dog",
-      breed: "German Shepherd",
-      age: "4 years",
-      image: "https://img.freepik.com/free-photo/closeup-german-shepherd-surrounded-by-greenery-sunlight_181624-14212.jpg?t=st=1737830116~exp=1737833716~hmac=0f80459d990c5c949b188ea04ba9797e8b9a725616c46711ff1792b49e2063a8&w=996",
-      description: "Intelligent and loyal, excellent guard dog.",
-    },
-    {
-      id: 5,
-      name: "Mittens",
-      type: "cat",
-      breed: "Persian",
-      age: "5 years",
-      image: "https://img.freepik.com/free-photo/close-up-beautiful-pet-cat_23-2150285612.jpg?t=st=1737830143~exp=1737833743~hmac=d7c42330bf037612b421a947e26c46a6174adf6e95c761a68a0212a1f7130bd8&w=996",
-      description: "Calm and regal, loves quiet environments.",
-    },
-    {
-      id: 5,
-      name: "Mittens",
-      type: "cat",
-      breed: "Persian",
-      age: "5 years",
-      image: "https://img.freepik.com/free-photo/close-up-beautiful-pet-cat_23-2150285612.jpg?t=st=1737830143~exp=1737833743~hmac=d7c42330bf037612b421a947e26c46a6174adf6e95c761a68a0212a1f7130bd8&w=996",
-      description: "Calm and regal, loves quiet environments.",
-    },
-  ]
 
-  const filteredPets = selectedPetType === "all" ? pets : pets.filter((pet) => pet.type === selectedPetType)
+  const filteredPets = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase()
+    return DUMMY_PETS.filter((pet) => {
+      const matchesType = selectedPetType === "all" || pet.species === selectedPetType
+      const matchesQuery =
+        !query ||
+        pet.name.toLowerCase().includes(query) ||
+        pet.breed.toLowerCase().includes(query) ||
+        pet.location.toLowerCase().includes(query)
+      return matchesType && matchesQuery
+    })
+  }, [selectedPetType, searchQuery])
 
   return (
     <div className="min-h-screen bg-base-100">
@@ -139,87 +167,95 @@ const LandingPage = () => {
             </p>
             <div className="flex justify-center space-x-5">
               <Link to="/adopt">
-              <button className="btn btn-primary btn-lg hover:-translate-y-0.5 transition-transform duration-200">
-                <PawPrint className="mr-2" />
-                Explore Pets
-              </button>
+                <button className="btn btn-primary btn-lg hover:-translate-y-0.5 transition-transform duration-200">
+                  <PawPrint className="mr-2" />
+                  Explore Pets
+                </button>
               </Link>
               <Link to="/rehome">
-              <button className="btn btn-outline btn-lg btn-primary hover:-translate-y-0.5 transition-transform duration-200">
-                Rehome a Pet
-              </button>
+                <button className="btn btn-outline btn-lg btn-primary hover:-translate-y-0.5 transition-transform duration-200">
+                  Rehome a Pet
+                </button>
               </Link>
             </div>
-            <div className="mt-16 grid grid-cols-3 gap-4 max-w-xl mx-auto bg-base-100 rounded-xl p-6 shadow-lg">
-              {[
-                { number: "10K+", label: "Pets Adopted" },
-                { number: "500+", label: "Happy Families" },
-                { number: "50+", label: "Vet Partners" },
-              ].map((stat, index) => (
-                <div key={index} className="text-center transform transition-transform duration-300 hover:scale-105">
-                  <div className="text-3xl font-bold text-primary">{stat.number}</div>
-                  <div className="text-sm text-base-content/70">{stat.label}</div>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
       </section>
 
-      {/* Featured Pets Section */}
+      {/* Featured Pets Section — static showcase pets */}
       <section className="py-16 bg-base-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-center mb-12 text-base-content">Our Adorable Pets Waiting for Home</h2>
-          <div className="flex justify-center mb-8">
-            <div className="btn-group">
-              {["all", "dog", "cat", "rabbit"].map((type) => (
-                <button
-                  key={type}
-                  className={`btn ${selectedPetType === type ? "btn-primary" : "btn-outline"} hover:-translate-y-0.5 transition-transform duration-200   ml-2`}
-                  onClick={() => setSelectedPetType(type)}
+          <h2 className="text-3xl font-bold text-center mb-4 text-base-content">Meet Some of Our Beautiful Pets</h2>
+          <p className="text-center text-base-content/60 mb-10 max-w-2xl mx-auto">
+            Every pet deserves a loving home — and every adoption is a small act that makes the world a little kinder.
+            Here are a few sweethearts who'd love to be part of your story.
+          </p>
+
+          {filteredPets.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {filteredPets.map((pet) => (
+                <div
+                  key={pet._id}
+                  className="card bg-base-200 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
                 >
-                  {type.charAt(0).toUpperCase() + type.slice(1)}s
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {filteredPets.map((pet) => (
-              <div
-                key={pet.id}
-                className="card bg-base-200 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
-              >
-                <figure className="px-10 pt-10">
-                  <img src={pet.image || "/placeholder.svg"} alt={pet.name} className="rounded-xl" />
-                </figure>
-                <div className="card-body items-center text-center">
-                  <h3 className="card-title">{pet.name}</h3>
-                  <p className="text-base-content/70">
-                    {pet.breed} • {pet.age}
-                  </p>
-                  <p className="text-sm text-base-content/80 mt-2">{pet.description}</p>
-                  <div className="card-actions justify-center mt-4">
-                    <button className="btn btn-primary hover:-translate-y-0.5 transition-transform duration-200">
-                      Adopt {pet.name} <ArrowRight className="ml-2" />
-                    </button>
+                  <figure className="px-10 pt-10">
+                    <img
+                      src={pet.photo}
+                      alt={pet.name}
+                      className="rounded-xl h-48 w-full object-cover"
+                    />
+                  </figure>
+                  <div className="card-body items-center text-center">
+                    <div className="flex items-center gap-2">
+                      <h3 className="card-title">{pet.name}</h3>
+                      <span className="badge badge-primary badge-outline gap-1">
+                        {typeIcon(pet.species)}
+                        {pet.species}
+                      </span>
+                    </div>
+                    <p className="text-base-content/70">
+                      {pet.breed} • {pet.age}
+                    </p>
+                    <div className="flex items-center gap-3 text-xs text-base-content/60">
+                      
+                      <span className="inline-flex items-center gap-1">
+                        <Weight className="w-3.5 h-3.5" /> {pet.weight}
+                      </span>
+                    </div>
+                    <p className="text-sm text-base-content/80 mt-2 line-clamp-3">{pet.description}</p>
+                    <div className="flex flex-wrap justify-center gap-1 mt-2">
+                      {pet.traits.map((trait, i) => (
+                        <span key={i} className="badge badge-ghost badge-sm">
+                          {trait}
+                        </span>
+                      ))}
+                    </div>
+                    
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+          )}
+
+          <div className="text-center mt-10">
+            <p className="text-base-content/60 text-sm max-w-2xl mx-auto">
+              Every dog, cat, and rabbit here is more than a pet — they're a companion waiting to give someone
+              unconditional love. Choosing to adopt means choosing compassion over convenience, and giving an animal
+              the home it deserves.
+            </p>
           </div>
         </div>
       </section>
 
-      {/* Adoption Process Section - NEW */}
+      {/* Adoption Process Section */}
       <section className="py-16 bg-base-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-center mb-12 text-base-content">
             Our Simple Adoption Process
             <div className="w-24 h-1 bg-primary mx-auto mt-4"></div>
           </h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            {/* Step 1 */}
             <div className="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 relative overflow-hidden">
               <div className="absolute -top-2 -left-2 bg-primary text-primary-content rounded-br-lg w-12 h-12 flex items-center justify-center font-bold text-2xl">1</div>
               <div className="card-body items-center text-center pt-10">
@@ -230,8 +266,7 @@ const LandingPage = () => {
                 </p>
               </div>
             </div>
-            
-            {/* Step 2 */}
+
             <div className="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 relative overflow-hidden">
               <div className="absolute -top-2 -left-2 bg-primary text-primary-content rounded-br-lg w-12 h-12 flex items-center justify-center font-bold text-2xl">2</div>
               <div className="card-body items-center text-center pt-10">
@@ -242,20 +277,18 @@ const LandingPage = () => {
                 </p>
               </div>
             </div>
-            
-            {/* Step 3 */}
+
             <div className="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 relative overflow-hidden">
               <div className="absolute -top-2 -left-2 bg-primary text-primary-content rounded-br-lg w-12 h-12 flex items-center justify-center font-bold text-2xl">3</div>
               <div className="card-body items-center text-center pt-10">
-                <PhoneCall className="w-16 h-16 text-primary mb-4" />
-                <h3 className="card-title">We Contact You</h3>
+                <MessageCircle className="w-16 h-16 text-primary mb-4" />
+                <h3 className="card-title">Chat With The Owner</h3>
                 <p className="text-base-content/70 text-sm mt-2">
-                  Our team will reach out within 48 hours to discuss next steps and arrange a meeting.
+                  Message the current owner directly, in real time, to ask questions before you commit.
                 </p>
               </div>
             </div>
-            
-            {/* Step 4 */}
+
             <div className="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 relative overflow-hidden">
               <div className="absolute -top-2 -left-2 bg-primary text-primary-content rounded-br-lg w-12 h-12 flex items-center justify-center font-bold text-2xl">4</div>
               <div className="card-body items-center text-center pt-10">
@@ -267,7 +300,7 @@ const LandingPage = () => {
               </div>
             </div>
           </div>
-          
+
           <div className="mt-12 text-center">
             <Link to="/adopt">
               <button className="btn btn-primary btn-lg hover:-translate-y-0.5 transition-transform duration-200">
@@ -281,59 +314,360 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Services Section */}
-      <section className="py-16 bg-base-100">
+      {/* Real-Time Chat Feature Showcase */}
+      <section className="py-16 bg-base-100 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-center mb-12 text-base-content">Our Comprehensive Services</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[
-              {
-                title: "Adopt a Pet",
-                icon: <PawPrint className="w-12 h-12" />,
-                path: "/adopt",
-                description: "Find your perfect furry companion through our careful matching process.",
-              },
-              {
-                title: "Rehome a Pet",
-                icon: <Home className="w-12 h-12" />,
-                path: "/rehome",
-                description: "Compassionate support for pets needing a new loving home.",
-              },
-              {
-                title: "Vet Services",
-                icon: <Stethoscope className="w-12 h-12" />,
-                path: "/vet-services",
-                description: "Comprehensive healthcare for your beloved pets.",
-              },
-              
-            ].map((service, index) => (
-              <div
-                key={index}
-                className="card bg-base-200 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 hover:bg-base-100"
-              >
-                <div className="card-body items-center text-center">
-                  {service.icon}
-                  <h3 className="card-title mt-4">{service.title}</h3>
-                  <p className="text-base-content/70 text-sm mt-2">{service.description}</p>
-                  <div className="card-actions justify-end mt-4">
-                    <button
-                      className="btn btn-primary hover:-translate-y-0.5 transition-transform duration-200"
-                      onClick={() => (window.location.href = service.path)}
-                    >
-                      Learn More
-                    </button>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <span className="badge badge-primary gap-2 py-3 px-4 mb-4">
+                <Zap className="w-4 h-4" />
+                Flagship Feature
+              </span>
+              <h2 className="text-3xl md:text-4xl font-extrabold text-base-content mb-4">
+                Real-Time Chat With Pet Owners
+              </h2>
+              <p className="text-base-content/70 text-lg mb-6">
+                No more waiting on email replies. PetPal has a built-in, real-time messaging system so adopters and
+                current owners can talk instantly — ask about temperament, vet history, or arrange a meet-and-greet,
+                all inside the platform.
+              </p>
+              <ul className="space-y-3 mb-8">
+                <li className="flex items-center gap-3">
+                  <span className="bg-primary/20 p-2 rounded-full">
+                    <Zap className="w-5 h-5 text-primary" />
+                  </span>
+                  <span className="text-base-content/80">Instant, socket-based delivery — no page refresh needed</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="bg-primary/20 p-2 rounded-full">
+                    <Circle className="w-5 h-5 text-success fill-success" />
+                  </span>
+                  <span className="text-base-content/80">Live online/offline presence indicators</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="bg-primary/20 p-2 rounded-full">
+                    <Shield className="w-5 h-5 text-primary" />
+                  </span>
+                  <span className="text-base-content/80">Conversations tied securely to verified accounts</span>
+                </li>
+              </ul>
+              <Link to="/chat">
+                <button className="btn btn-primary btn-lg gap-2 hover:-translate-y-0.5 transition-transform duration-200">
+                  <MessageCircle className="w-5 h-5" />
+                  Try the Live Chat
+                </button>
+              </Link>
+            </div>
+
+            <div className="mockup-window border border-base-300 bg-base-200 shadow-2xl">
+              <div className="flex flex-col bg-base-100 px-4 py-6 gap-4 min-h-[380px]">
+                <div className="flex items-center gap-3 pb-3 border-b border-base-300">
+                  <div className="avatar online placeholder">
+                    <div className="bg-primary text-primary-content rounded-full w-10">
+                      <span>SM</span>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="font-semibold text-base-content">Sarah M. (Buddy's Owner)</p>
+                    <p className="text-xs text-success flex items-center gap-1">
+                      <Circle className="w-2 h-2 fill-success" /> Online now
+                    </p>
                   </div>
                 </div>
+
+                <div className="flex flex-col gap-3 flex-1">
+                  <div className="chat chat-start">
+                    <div className="chat-bubble">Hi! Is Buddy still up for adoption?</div>
+                  </div>
+                  <div className="chat chat-end">
+                    <div className="chat-bubble chat-bubble-primary">
+                      Yes he is! He's great with kids and loves the park 🐾
+                    </div>
+                  </div>
+                  <div className="chat chat-start">
+                    <div className="chat-bubble">That's perfect, can we set up a meet-and-greet this weekend?</div>
+                  </div>
+                  <div className="chat chat-end">
+                    <div className="chat-bubble chat-bubble-primary flex items-center gap-1">
+                      <span className="loading loading-dots loading-xs"></span>
+                      typing...
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 pt-2 border-t border-base-300">
+                  <input
+                    type="text"
+                    disabled
+                    placeholder="Message Sarah..."
+                    className="input input-bordered input-sm w-full"
+                  />
+                  <button className="btn btn-primary btn-sm btn-circle">
+                    <Send className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
-            ))}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Why Choose Us Section */}
-      <section className="py-16 bg-base-200">
+      {/* Adopt a Pet — Showcase Feature */}
+        <section className="py-16 bg-base-200 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-center mb-12 text-base-content">Why Choose Pet Haven</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div className="order-2 lg:order-1 mockup-window border border-base-300 bg-base-100 shadow-2xl">
+              <div className="flex flex-col gap-4 p-6 min-h-[340px]">
+                <div className="flex items-center gap-2">
+                  <FilterIcon className="w-4 h-4 text-primary" />
+                  <span className="text-sm font-semibold text-base-content">Filter Pets</span>
+                </div>
+ 
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { label: "Dog", icon: <Dog className="w-4 h-4" />, active: true },
+                    { label: "Cat", icon: <Cat className="w-4 h-4" />, active: false },
+                    { label: "Rabbit", icon: <Rabbit className="w-4 h-4" />, active: false },
+                  ].map((t) => (
+                    <button
+                      key={t.label}
+                      type="button"
+                      className={`btn btn-sm gap-1 ${t.active ? "btn-primary" : "btn-outline"}`}
+                      tabIndex={-1}
+                    >
+                      {t.icon}
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+ 
+                <div>
+                  <p className="text-xs font-semibold text-base-content/70 mb-2">Age Range: 1 – 8 yrs</p>
+                  <input type="range" min="0" max="20" defaultValue="8" className="range range-primary range-xs" disabled />
+                </div>
+ 
+                <div className="relative">
+                  <input
+                    type="text"
+                    disabled
+                    placeholder="Search by name or breed..."
+                    className="input input-bordered input-sm w-full pl-8"
+                  />
+                  <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-base-content/40" />
+                </div>
+ 
+
+ 
+              </div>
+            </div>
+ 
+            <div className="order-1 lg:order-2">
+              <span className="badge badge-primary gap-2 py-3 px-4 mb-4">
+                <PawPrint className="w-4 h-4" />
+                Adopt a Pet
+              </span>
+              <h2 className="text-3xl md:text-4xl font-extrabold text-base-content mb-4">
+                Browse Pets With Filters That Actually Help
+              </h2>
+              <p className="text-base-content/70 text-lg mb-6">
+                Narrow down listings by type, age range, and special needs, search by name or breed, sort by what
+                matters to you, and save favorites as you go — so finding the right pet takes minutes, not hours.
+              </p>
+              <ul className="space-y-3 mb-8">
+                <li className="flex items-center gap-3">
+                  <span className="bg-primary/20 p-2 rounded-full">
+                    <FilterIcon className="w-5 h-5 text-primary" />
+                  </span>
+                  <span className="text-base-content/80">Filter by type, age range, and special needs</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="bg-primary/20 p-2 rounded-full">
+                    <Search className="w-5 h-5 text-primary" />
+                  </span>
+                  <span className="text-base-content/80">Instant search by name or breed, sort by name, age, or fee</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="bg-primary/20 p-2 rounded-full">
+                    <HeartIcon className="w-5 h-5 text-primary" />
+                  </span>
+                  <span className="text-base-content/80">Save pets to your favorites as you browse</span>
+                </li>
+              </ul>
+              <Link to="/adopt">
+                <button className="btn btn-primary btn-lg gap-2 hover:-translate-y-0.5 transition-transform duration-200">
+                  <PawPrint className="w-5 h-5" />
+                  Browse Adoptable Pets
+                </button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Rehome a Pet — Showcase Feature */}
+      <section className="py-16 bg-base-100 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <span className="badge badge-secondary gap-2 py-3 px-4 mb-4">
+                <Home className="w-4 h-4" />
+                Rehome a Pet
+              </span>
+              <h2 className="text-3xl md:text-4xl font-extrabold text-base-content mb-4">
+                Give Your Pet a Second Chapter, With Care
+              </h2>
+              <p className="text-base-content/70 text-lg mb-6">
+                Life circumstances change — your love for your pet doesn't have to be interrupted by them. Our
+                rehoming process screens every applicant so your pet lands somewhere just as loving as home.
+              </p>
+              <ul className="space-y-3 mb-8">
+                <li className="flex items-center gap-3">
+                  <span className="bg-secondary/20 p-2 rounded-full">
+                    <Shield className="w-5 h-5 text-secondary" />
+                  </span>
+                  <span className="text-base-content/80">Vetted, screened adopters only</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="bg-secondary/20 p-2 rounded-full">
+                    <Users className="w-5 h-5 text-secondary" />
+                  </span>
+                  <span className="text-base-content/80">Direct messaging with prospective families</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="bg-secondary/20 p-2 rounded-full">
+                    <CalendarCheck className="w-5 h-5 text-secondary" />
+                  </span>
+                  <span className="text-base-content/80">Support at every step, from listing to hand-off</span>
+                </li>
+              </ul>
+              <Link to="/rehome">
+                <button className="btn btn-secondary btn-lg gap-2 hover:-translate-y-0.5 transition-transform duration-200">
+                  <Home className="w-5 h-5" />
+                  Start Rehoming
+                </button>
+              </Link>
+            </div>
+
+            <div className="mockup-window border border-base-300 bg-base-200 shadow-2xl">
+              <div className="flex flex-col gap-4 p-6 min-h-[340px]">
+                <p className="font-semibold text-base-content mb-1">Rehoming request status</p>
+                {[
+                  { label: "Listing submitted", done: true },
+                  { label: "Photos & details verified", done: true },
+                  { label: "Matching with adopters", done: true },
+                  { label: "Meet-and-greet scheduled", done: false },
+                ].map((step) => (
+                  <div key={step.label} className="flex items-center gap-3 bg-base-100 rounded-lg p-3">
+                    <div
+                      className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                        step.done ? "bg-secondary text-secondary-content" : "bg-base-300"
+                      }`}
+                    >
+                      {step.done && <Check className="w-4 h-4" />}
+                    </div>
+                    <span className={step.done ? "text-base-content" : "text-base-content/50"}>{step.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Vet Services — Showcase Feature */}
+ <section className="py-16 bg-base-200 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div className="order-2 lg:order-1 mockup-window border border-base-300 bg-base-100 shadow-2xl">
+              <div className="flex flex-col gap-4 p-6 min-h-[340px]">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-5 h-5 text-accent" />
+                    <span className="font-semibold text-base-content">Vet Clinics Near You</span>
+                  </div>
+                  <button className="btn btn-accent btn-xs gap-1" tabIndex={-1}>
+                    <Navigation className="w-3.5 h-3.5" />
+                    My Location
+                  </button>
+                </div>
+ 
+                {[
+                  { name: "Companion Animal Clinic", distance: "0.6 mi", rating: 4.8 },
+                  { name: "Riverside Veterinary Hospital", distance: "1.2 mi", rating: 4.6 },
+                  { name: "Paws & Claws Vet Care", distance: "2.1 mi", rating: 4.9 },
+                ].map((clinic) => (
+                  <div key={clinic.name} className="bg-base-200 rounded-lg p-3 flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-base-content">{clinic.name}</p>
+                      <div className="flex items-center gap-2 text-xs text-base-content/60 mt-1">
+                        <span className="inline-flex items-center gap-1">
+                          <MapPin className="w-3 h-3" /> {clinic.distance}
+                        </span>
+                        <span className="inline-flex items-center gap-1">
+                          <Star className="w-3 h-3 fill-warning text-warning" /> {clinic.rating}
+                        </span>
+                      </div>
+                    </div>
+                    <button className="btn btn-ghost btn-xs gap-1" tabIndex={-1}>
+                      <Navigation className="w-3.5 h-3.5" />
+                      Directions
+                    </button>
+                  </div>
+                ))}
+ 
+                <p className="text-[11px] text-base-content/40 text-center mt-1">Powered by Google Places API</p>
+              </div>
+            </div>
+ 
+            <div className="order-1 lg:order-2">
+              <span className="badge badge-accent gap-2 py-3 px-4 mb-4">
+                <Stethoscope className="w-4 h-4" />
+                Vet Services
+              </span>
+              <h2 className="text-3xl md:text-4xl font-extrabold text-base-content mb-4">
+                Find Nearby Vet Clinics, In Real Time
+              </h2>
+              <p className="text-base-content/70 text-lg mb-6">
+                Using your live location and the Google Places API, PetPal instantly surfaces veterinary clinics near
+                you — complete with distance, ratings, and one-tap directions — so help is never far away, before or
+                after adoption.
+              </p>
+              <ul className="space-y-3 mb-8">
+                <li className="flex items-center gap-3">
+                  <span className="bg-accent/20 p-2 rounded-full">
+                    <MapPin className="w-5 h-5 text-accent" />
+                  </span>
+                  <span className="text-base-content/80">Live results based on your current location</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="bg-accent/20 p-2 rounded-full">
+                    <Star className="w-5 h-5 text-accent" />
+                  </span>
+                  <span className="text-base-content/80">See ratings and distance at a glance</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="bg-accent/20 p-2 rounded-full">
+                    <Navigation className="w-5 h-5 text-accent" />
+                  </span>
+                  <span className="text-base-content/80">One tap to get directions to any clinic</span>
+                </li>
+              </ul>
+              <Link to="/vet-services">
+                <button className="btn btn-accent btn-lg gap-2 hover:-translate-y-0.5 transition-transform duration-200">
+                  <MapPin className="w-5 h-5" />
+                  Find Vet Clinics Near Me
+                </button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+ 
+
+      {/* Why Choose Us Section */}
+      <section className="py-16 bg-base-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-bold text-center mb-12 text-base-content">Why Choose Pet Pal</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               {
@@ -369,7 +703,7 @@ const LandingPage = () => {
             ].map((item, index) => (
               <div
                 key={index}
-                className="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 hover:bg-base-200"
+                className="card bg-base-200 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 hover:bg-base-100"
               >
                 <div className="card-body items-center text-center">
                   {item.icon}
@@ -471,7 +805,7 @@ const LandingPage = () => {
       <div className="footer footer-center p-4 bg-base-200 text-base-content">
         <div>
           <p>
-            © {new Date().getFullYear()} Pet Haven. All rights reserved. Designed with{" "}
+            © {new Date().getFullYear()} Pet Pal. All rights reserved. Designed with{" "}
             <Heart className="inline-block text-error" size={16} /> by Our Dedicated Team
           </p>
         </div>

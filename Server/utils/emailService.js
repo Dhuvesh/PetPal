@@ -71,7 +71,7 @@ const sendDonationReceipt = async (donation) => {
     const receiptNumber = `PH-${donation._id.toString().substring(0, 8)}-${Date.now().toString().substring(9, 13)}`;
     
     // Create email content
-    const emailSubject = `Your Pet Haven Donation Receipt (#${receiptNumber})`;
+    const emailSubject = `Your Pet Pal Donation Receipt (#${receiptNumber})`;
     
     const emailHtml = `
     <!DOCTYPE html>
@@ -189,13 +189,13 @@ const sendDonationReceipt = async (donation) => {
     <body>
       <div class="container">
         <div class="header">
-          <h1>Pet Haven</h1>
+          <h1>Pet Pal</h1>
           <p>Making a difference for animals in need</p>
         </div>
         
         <p>Dear ${donorName},</p>
         
-        <p>Thank you for your generous donation to Pet Haven! Your support helps us continue our mission to rescue, rehabilitate, and rehome animals in need.</p>
+        <p>Thank you for your generous donation to Pet Pal! Your support helps us continue our mission to rescue, rehabilitate, and rehome animals in need.</p>
         
         <div class="receipt-box">
           <div class="receipt-header">
@@ -237,28 +237,28 @@ const sendDonationReceipt = async (donation) => {
         </div>
         
         <div class="tax-info">
-          <p>Pet Haven is a registered non-profit organization. Your donation may be tax-deductible to the extent allowed by law. Please save this receipt for your tax records.</p>
+          <p>Pet Pal is a registered non-profit organization. Your donation may be tax-deductible to the extent allowed by law. Please save this receipt for your tax records.</p>
           <p>Tax ID: 12-3456789</p>
         </div>
         
         <div class="thank-you">
           <p>Your generosity makes a real difference!</p>
-          <p>With gratitude,<br>The Pet Haven Team</p>
+          <p>With gratitude,<br>The Pet Pal Team</p>
           
-          <a href="https://pethaven.org/impact" class="cta-button">See Your Impact</a>
+          <a href="https://petpal.org/impact" class="cta-button">See Your Impact</a>
         </div>
         
         <div class="footer">
-          <p>Pet Haven | 123 Animal Way, Mumbai, Maharashtra 400001</p>
-          <p>Phone: +91 98765 43210 | Email: info@pethaven.org</p>
+          <p>Pet pal | 123 Animal Way, Mumbai, Maharashtra 400001</p>
+          <p>Phone: +91 98765 43210 | Email: info@petal.org</p>
           
           <div class="social-links">
-            <a href="https://facebook.com/pethaven">Facebook</a> | 
-            <a href="https://twitter.com/pethaven">Twitter</a> | 
-            <a href="https://instagram.com/pethaven">Instagram</a>
+            <a href="https://facebook.com/petpal">Facebook</a> | 
+            <a href="https://twitter.com/petpal">Twitter</a> | 
+            <a href="https://instagram.com/petpal">Instagram</a>
           </div>
           
-          <p>If you have any questions about your donation, please contact us at donations@pethaven.org</p>
+          <p>If you have any questions about your donation, please contact us at donations@petpal.org</p>
         </div>
       </div>
     </body>
@@ -267,7 +267,7 @@ const sendDonationReceipt = async (donation) => {
     
     // Send email
     const info = await transporter.sendMail({
-      from: `"Pet Haven" <${process.env.EMAIL_FROM}>`,
+      from: `"Pet Pal" <${process.env.EMAIL_FROM}>`,
       to: donation.email,
       subject: emailSubject,
       html: emailHtml

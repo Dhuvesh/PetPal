@@ -37,7 +37,7 @@ const ContactPage = () => {
   const [toast, setToast] = useState({
     show: false,
     message: "",
-    type: "success", // success or error
+    type: "success", 
   })
   
   const handleChange = (e) => {
@@ -138,7 +138,7 @@ const ContactPage = () => {
     {
       icon: <Mail className="h-6 w-6 text-primary" />,
       title: "Email",
-      details: ["contact@pethaven.com", "support@pethaven.com"],
+      details: ["contact@petpal.com", "support@petpal.com"],
       action: "Email us"
     },
     {
@@ -573,7 +573,7 @@ const ContactPage = () => {
       <div className="footer footer-center p-4 bg-base-200 text-base-content">
         <div>
           <p>
-            © {new Date().getFullYear()} Pet Haven. All rights reserved. Designed with{" "}
+            © {new Date().getFullYear()} Pet Pal. All rights reserved. Designed with{" "}
             <Heart className="inline-block text-error" size={16} /> by Our Dedicated Team
           </p>
         </div>

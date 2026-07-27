@@ -26,13 +26,12 @@ const LoginPage = () => {
     }
 
     try {
-      // Login with email and password (backend determines user type)
+
       const userData = await login({
         email: formData.email,
         password: formData.password
       });
 
-      // Navigate based on the actual user type returned from backend
       if (userData.userType === 'user') {
         navigate('/');
       } else if (userData.userType === 'ngo') {
@@ -41,7 +40,6 @@ const LoginPage = () => {
         toast.error("Unknown user type");
       }
     } catch (error) {
-      // Error handling is done in the store
       console.error('Login error:', error);
     }
   };
@@ -91,28 +89,7 @@ const LoginPage = () => {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              {/* User Type Info (for display only) */}
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text font-medium">Account Type</span>
-                </label>
-                <select
-                  value={formData.userType}
-                  onChange={(e) => setFormData({ ...formData, userType: e.target.value })}
-                  className="select select-primary w-full"
-                  disabled={isLoggingIn}
-                >
-                  <option value="user">Individual User</option>
-                  <option value="ngo">NGO Representative</option>
-                </select>
-                <label className="label">
-                  <span className="label-text-alt text-base-content/60">
-                    This is for display only. We'll detect your account type automatically.
-                  </span>
-                </label>
-              </div>
 
-              {/* Email Input */}
               <div className="form-control">
                 <label className="label">
                   <span className="label-text font-medium">Email</span>
@@ -132,7 +109,6 @@ const LoginPage = () => {
                 </div>
               </div>
 
-              {/* Password Input */}
               <div className="form-control">
                 <label className="label">
                   <span className="label-text font-medium">Password</span>
