@@ -11,7 +11,7 @@ const LoginPage = () => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    userType: 'user', // Default user type for UI purposes only
+    userType: 'user',
   });
 
   const handleSubmit = async (e) => {
@@ -45,12 +45,12 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-base-100 overflow-y-auto relative py-8 px-4 md:py-0 md:px-0 md:overflow-hidden md:max-h-screen">
+    <div className="min-h-screen w-full flex items-center justify-center bg-base-100 overflow-y-auto relative py-8 px-4  md:py-0 md:px-0 md:overflow-hidden md:max-h-screen">
       <div className="absolute inset-0 bg-primary/10 animate-[shimmer_10s_ease_infinite]"></div>
 
       <div className="w-full max-w-5xl mx-auto grid md:grid-cols-2 z-10 relative gap-6 md:gap-0">
         {/* Left Side - Illustration & Motivational Section */}
-        <div className="hidden md:flex bg-primary/20 h-screen flex-col justify-center items-center p-6 md:p-12 space-y-6 md:space-y-8 text-center">
+        <div className="hidden md:flex sm:pt-10 bg-primary/20 h-screen flex-col justify-center items-center p-6 md:p-12 space-y-6 md:space-y-8 text-center">
           <div className="bg-primary/20 p-4 md:p-6 rounded-full">
             <LucideIcons.DogIcon className="w-20 h-20 md:w-32 md:h-32 text-primary animate-bounce" />
           </div>

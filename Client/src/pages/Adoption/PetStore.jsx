@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { Heart, Search, X, PawPrint, ArrowRight, FilterIcon, HeartIcon } from "lucide-react"
+import { Heart, Search, X, PawPrint, ArrowRight, FilterIcon, HeartIcon, SlidersHorizontal, ChevronDown } from "lucide-react"
 import { Link } from "react-router-dom"
 
 
@@ -17,6 +17,7 @@ const PetAdoptionStore = () => {
   })
   const [sortBy, setSortBy] = useState("name")
   const [favorites, setFavorites] = useState([])
+  const [showMobileFilters, setShowMobileFilters] = useState(false)
 
   // Filter and Sort Pets
   useEffect(() => {
@@ -84,23 +85,38 @@ const PetAdoptionStore = () => {
   }
 
   return (
-    <div className="min-h-screen p-8 pt-28">
+    <div className="min-h-screen p-4 sm:p-6 md:p-8 pt-20 md:pt-28">
       <div className="container mx-auto">
         {/* Header */}
-        <header className="mb-12 text-center">
-          <h1 className="text-5xl font-extrabold text-primary mb-4 flex items-center justify-center">
-            <PawPrint className="mr-4 text-blue-500" size={48} />
-            Pet Adoption Pal
-            <Heart className="ml-4 text-red-500 animate-pulse" size={48} />
+        <header className="mb-8 md:mb-12 text-center">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-primary mb-3 md:mb-4 flex items-center justify-center flex-wrap gap-x-2 sm:gap-x-4">
+            <PawPrint className="text-blue-500 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12" />
+            <span>Pet Adoption Pal</span>
+            <Heart className="text-red-500 animate-pulse w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12" />
           </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-2xl mx-auto px-2">
             Find your perfect companion and bring love home today!
           </p>
         </header>
 
-        <div className="flex space-x-8">
+        {/* Mobile Filter Toggle */}
+        <button
+          className="btn btn-outline w-full mb-4 flex items-center justify-center md:hidden"
+          onClick={() => setShowMobileFilters((prev) => !prev)}
+        >
+          <SlidersHorizontal className="mr-2 w-5 h-5" />
+          Filters & Sorting
+          <ChevronDown
+            className={`ml-2 w-4 h-4 transition-transform duration-300 ${showMobileFilters ? "rotate-180" : ""}`}
+          />
+        </button>
+
+        <div className="flex flex-col md:flex-row md:space-x-8 gap-6 md:gap-0">
           {/* Sidebar Filters */}
-          <div className="w-1/4 bg-base-200 rounded-2xl shadow-xl p-6 h-fit transition-all duration-300 hover:shadow-2xl">
+          <div
+            className={`w-full md:w-1/4 bg-base-200 rounded-2xl shadow-xl p-4 sm:p-6 h-fit transition-all duration-300 hover:shadow-2xl
+              ${showMobileFilters ? "block" : "hidden"} md:block`}
+          >
             <div className="space-y-6">
               {/* Pet Type Filter */}
               <div>
@@ -197,13 +213,13 @@ const PetAdoptionStore = () => {
           </div>
 
           {/* Pet Grid */}
-          <div className="w-3/4">
+          <div className="w-full md:w-3/4">
             {filteredPets.length === 0 ? (
-              <div className="text-center py-16 bg-white rounded-2xl shadow-lg">
-                <p className="text-2xl text-gray-500">No pets match your current filters.</p>
+              <div className="text-center py-16 bg-white rounded-2xl shadow-lg px-4">
+                <p className="text-xl sm:text-2xl text-gray-500">No pets match your current filters.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {filteredPets.map((pet) => (
                   <Link
                     to={`/adopt/${pet._id}`}
@@ -236,7 +252,7 @@ const PetAdoptionStore = () => {
                       <img
                         src={pet.photos && pet.photos.length > 0 ? pet.photos[0] : "/placeholder.svg"}
                         alt={pet.name}
-                        className="w-full h-64 object-cover 
+                        className="w-full h-48 sm:h-56 md:h-64 object-cover 
                           transition-transform duration-300 
                           group-hover:scale-110"
                       />
@@ -247,15 +263,15 @@ const PetAdoptionStore = () => {
                       )}
                     </figure>
 
-                    <div className="card-body p-6">
-                      <h2 className="card-title text-xl font-bold mb-2">{pet.name}</h2>
-                      <p className="text-gray-600 mb-4">
+                    <div className="card-body p-4 sm:p-6">
+                      <h2 className="card-title text-lg sm:text-xl font-bold mb-2">{pet.name}</h2>
+                      <p className="text-gray-600 mb-4 text-sm sm:text-base">
                         {pet.breed} • {pet.age} • {pet.gender}
                       </p>
-                      <p className="text-gray-500 mb-4 line-clamp-2">{pet.description}</p>
+                      <p className="text-gray-500 mb-4 line-clamp-2 text-sm sm:text-base">{pet.description}</p>
 
-                      <div className="flex justify-between items-center mb-4">
-                        <div className="flex space-x-2">
+                      <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
+                        <div className="flex space-x-2 flex-wrap gap-y-1">
                           {pet.traits &&
                             pet.traits.slice(0, 2).map((trait) => (
                               <span key={trait} className="badge badge-outline hover:bg-blue-50 transition-colors">
@@ -289,4 +305,3 @@ const PetAdoptionStore = () => {
 }
 
 export default PetAdoptionStore
-

@@ -235,7 +235,7 @@ const SignUpPage = () => {
       
       <div className="w-full max-w-5xl mx-auto grid md:grid-cols-2 z-10 relative">
         {/* Left Side - Illustration & Motivational Section */}
-        <div className="bg-primary/20 flex flex-col justify-center items-center p-12 space-y-8 text-center">
+        <div className="bg-primary/20 sm:pt-10 flex flex-col justify-center items-center p-12 space-y-8 text-center">
           <div className="bg-primary/20 p-6 rounded-full">
             <LucideIcons.DogIcon className="w-32 h-32 text-primary animate-bounce" />
           </div>
