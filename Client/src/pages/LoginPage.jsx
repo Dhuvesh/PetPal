@@ -45,26 +45,26 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen w-full max-h-screen flex items-center justify-center bg-base-100 overflow-hidden relative ">
-      <div className="absolute inset-0  bg-primary/10 animate-[shimmer_10s_ease_infinite]"></div>
-      
-      <div className="w-full max-w-5xl mx-auto grid md:grid-cols-2 z-10 relative">
+    <div className="min-h-screen w-full flex items-center justify-center bg-base-100 overflow-y-auto relative py-8 px-4 md:py-0 md:px-0 md:overflow-hidden md:max-h-screen">
+      <div className="absolute inset-0 bg-primary/10 animate-[shimmer_10s_ease_infinite]"></div>
+
+      <div className="w-full max-w-5xl mx-auto grid md:grid-cols-2 z-10 relative gap-6 md:gap-0">
         {/* Left Side - Illustration & Motivational Section */}
-        <div className="bg-primary/20 h-screen flex flex-col justify-center items-center p-12 space-y-8 text-center">
-          <div className="bg-primary/20 p-6  rounded-full">
-            <LucideIcons.DogIcon className="w-32 h-32 text-primary animate-bounce" />
+        <div className="hidden md:flex bg-primary/20 h-screen flex-col justify-center items-center p-6 md:p-12 space-y-6 md:space-y-8 text-center">
+          <div className="bg-primary/20 p-4 md:p-6 rounded-full">
+            <LucideIcons.DogIcon className="w-20 h-20 md:w-32 md:h-32 text-primary animate-bounce" />
           </div>
-          
-          <div className="space-y-4">
-            <h1 className="text-4xl font-extrabold text-base-content">
+
+          <div className="space-y-3 md:space-y-4">
+            <h1 className="text-3xl md:text-4xl font-extrabold text-base-content">
               Welcome to <span className="text-primary">PetPal</span>
             </h1>
-            <p className="text-xl text-base-content/80 max-w-md mx-auto">
+            <p className="text-lg md:text-xl text-base-content/80 max-w-md mx-auto">
               Your compassionate journey starts here. Connect, care, and make a difference in animal welfare.
             </p>
           </div>
-          
-          <div className="flex space-x-4 text-base-content/70">
+
+          <div className="flex space-x-4 text-base-content/70 flex-wrap justify-center gap-y-2">
             <div className="flex items-center space-x-2">
               <LucideIcons.Heart className="w-6 h-6 text-primary" />
               <span>Rehome</span>
@@ -80,12 +80,24 @@ const LoginPage = () => {
           </div>
         </div>
 
+        {/* Compact mobile header, shown only below md */}
+        <div className="flex md:hidden flex-col items-center text-center space-y-3 mb-2">
+          <div className="bg-primary/20 p-4 rounded-full">
+            <LucideIcons.DogIcon className="w-14 h-14 text-primary animate-bounce" />
+          </div>
+          <h1 className="text-2xl font-extrabold text-base-content">
+            Welcome to <span className="text-primary">PetPal</span>
+          </h1>
+          <p className="text-sm text-base-content/80 max-w-xs mx-auto">
+            Your compassionate journey starts here. Connect, care, and make a difference in animal welfare.
+          </p>
+        </div>
+
         {/* Right Side - Login Form */}
-        <div className="bg-base-200 flex items-center justify-center p-12">
+        <div className="bg-base-200 flex items-center justify-center p-6 sm:p-8 md:p-12 rounded-2xl md:rounded-none">
           <div className="w-full max-w-md space-y-6">
             <div className="text-center">
-              <h2 className="text-3xl font-bold text-base-content mb-2 mt-6">Login</h2>
-              
+              <h2 className="text-2xl md:text-3xl font-bold text-base-content mb-2 mt-2 md:mt-6">Login</h2>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -138,7 +150,7 @@ const LoginPage = () => {
                     )}
                   </button>
                 </div>
-                
+
                 {/* Forgot Password Link */}
                 <label className="label">
                   <Link to="/forgot-password" className="label-text-alt link link-primary">
@@ -148,8 +160,8 @@ const LoginPage = () => {
               </div>
 
               {/* Submit Button */}
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 className="btn btn-primary w-full"
                 disabled={isLoggingIn}
               >
@@ -163,8 +175,6 @@ const LoginPage = () => {
                 )}
               </button>
             </form>
-
-           
 
             {/* Sign Up Link */}
             <div className="text-center mt-4">
